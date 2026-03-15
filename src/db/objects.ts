@@ -35,6 +35,10 @@ export async function getFile(id: string): Promise<FileRecord | undefined> {
   return db.files.get(id);
 }
 
+export async function updateFile(id: string, changes: Partial<FileRecord>): Promise<void> {
+  await db.files.update(id, changes);
+}
+
 export async function deleteFile(id: string): Promise<void> {
   await db.files.delete(id);
 }

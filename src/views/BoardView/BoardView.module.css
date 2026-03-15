@@ -19,6 +19,10 @@
   cursor: crosshair;
 }
 
+.container.drawMode {
+  cursor: crosshair;
+}
+
 .gridBackground {
   position: absolute;
   inset: 0;
@@ -27,13 +31,13 @@
 }
 
 .gridBackground.gridDots {
-  background-image: radial-gradient(circle, rgba(194, 174, 151, 0.15) 1px, transparent 1px);
+  background-image: radial-gradient(circle, rgba(160, 145, 125, 0.45) 1px, transparent 1px);
 }
 
 .gridBackground.gridLines {
   background-image:
-    linear-gradient(to right, rgba(194, 174, 151, 0.12) 1px, transparent 1px),
-    linear-gradient(to bottom, rgba(194, 174, 151, 0.12) 1px, transparent 1px);
+    linear-gradient(to right, rgba(160, 145, 125, 0.3) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(160, 145, 125, 0.3) 1px, transparent 1px);
 }
 
 .canvasLayer {

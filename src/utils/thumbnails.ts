@@ -1,5 +1,5 @@
 /** Returns { width, height } scaled to fit within maxCanvasWidth while preserving aspect ratio. */
-export async function getImageDimensions(blob: Blob, maxCanvasWidth = 300): Promise<{ width: number; height: number }> {
+export async function getImageDimensions(blob: Blob, maxCanvasWidth = 600): Promise<{ width: number; height: number }> {
   const img = await createImageBitmap(blob);
   const aspect = img.width / img.height;
   const w = Math.min(img.width, maxCanvasWidth);

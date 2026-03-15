@@ -16,6 +16,15 @@ export function BoardCard({ board }: BoardCardProps) {
   const [contextMenu, setContextMenu] = useState<{ x: number; y: number } | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
+  // Manage thumbnail URL lifecycle to prevent memory leaks
+  const [thumbnailUrl, setThumbnailUrl] = useState<string | null>(null);
+  useEffect(() => {
+    if (!board.thumbnail) { setThumbnailUrl(null); return; }
+    const url = URL.createObjectURL(board.thumbnail);
+    setThumbnailUrl(url);
+    return () => URL.revokeObjectURL(url);
+  }, [board.thumbnail]);
+
   useEffect(() => {
     if (editing) inputRef.current?.focus();
   }, [editing]);
@@ -74,8 +83,6 @@ export function BoardCard({ board }: BoardCardProps) {
     if (diffDays < 7) return `${diffDays}d ago`;
     return d.toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' });
   };
-
-  const thumbnailUrl = board.thumbnail ? URL.createObjectURL(board.thumbnail) : null;
 
   return (
     <>

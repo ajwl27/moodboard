@@ -47,7 +47,7 @@ export interface CanvasObjectBase {
   layerId: string | null;
 }
 
-export type CanvasObjectType = 'image' | 'text' | 'link' | 'file' | 'group' | 'arrow';
+export type CanvasObjectType = 'image' | 'text' | 'link' | 'file' | 'group' | 'arrow' | 'note' | 'drawing';
 
 // --- Concrete object types ---
 
@@ -57,6 +57,7 @@ export interface ImageCard extends CanvasObjectBase {
   originalFilename: string;
   caption: string;
   objectFit: 'cover' | 'contain';
+  linkUrl?: string;
   cropX?: number;      // 0–1 normalized, default 0
   cropY?: number;      // 0–1 normalized, default 0
   cropWidth?: number;   // 0–1 normalized, default 1
@@ -67,6 +68,8 @@ export interface TextCard extends CanvasObjectBase {
   type: 'text';
   content: string;
   fontSize: number;
+  fontColour?: string;
+  transparentBg?: boolean;
 }
 
 export interface LinkCard extends CanvasObjectBase {
@@ -107,7 +110,23 @@ export interface Arrow extends CanvasObjectBase {
   strokeWidth: number;
 }
 
-export type CanvasObject = ImageCard | TextCard | LinkCard | FileCard | GroupRegion | Arrow;
+export interface NoteCard extends CanvasObjectBase {
+  type: 'note';
+  title: string;
+  content: string;
+  fontSize?: number;
+  fontColour?: string;
+  transparentBg?: boolean;
+}
+
+export interface DrawingCard extends CanvasObjectBase {
+  type: 'drawing';
+  points: Array<{ x: number; y: number }>;
+  strokeColour: string;
+  strokeWidth: number;
+}
+
+export type CanvasObject = ImageCard | TextCard | LinkCard | FileCard | GroupRegion | Arrow | NoteCard | DrawingCard;
 
 // --- File storage ---
 
@@ -122,7 +141,7 @@ export interface FileRecord {
 
 // --- Utility types ---
 
-export type ToolMode = 'select' | 'arrow' | 'text' | 'group';
+export type ToolMode = 'select' | 'arrow' | 'text' | 'group' | 'draw';
 
 export interface Rect {
   x: number;

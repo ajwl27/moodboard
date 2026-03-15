@@ -49,7 +49,7 @@ export function TextCard({ obj }: Props) {
         fontSize: obj.fontSize,
         lineHeight: 1.6,
         overflow: 'hidden',
-        color: '#2C2825',
+        color: obj.fontColour || '#2C2825',
         borderRadius: 6,
       }}
     >
@@ -72,7 +72,7 @@ export function TextCard({ obj }: Props) {
             fontFamily: 'inherit',
             background: 'transparent',
             padding: 0,
-            color: 'var(--text)',
+            color: obj.fontColour || 'var(--text)',
           }}
         />
       ) : (

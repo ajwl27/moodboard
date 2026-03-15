@@ -95,6 +95,30 @@ export function Toolbar() {
     state.setToolMode(state.toolMode === 'arrow' ? 'select' : 'arrow');
   }, []);
 
+  const toggleDrawMode = useCallback(() => {
+    const state = useCanvasStore.getState();
+    state.setToolMode(state.toolMode === 'draw' ? 'select' : 'draw');
+  }, []);
+
+  const addNoteCard = useCallback(() => {
+    const state = useCanvasStore.getState();
+    if (!state.boardId) return;
+    const cam = state.camera;
+    const cx = (window.innerWidth / 2) / cam.zoom - cam.x;
+    const cy = (window.innerHeight / 2) / cam.zoom - cam.y;
+    state.addObject({
+      id: crypto.randomUUID(), boardId: state.boardId, type: 'note',
+      x: cx - 140, y: cy - 100, width: 280, height: 200,
+      zIndex: state.getMaxZIndex() + 1, locked: false, colour: '#faf8f5',
+      title: '', content: '', layerId: state.activeLayerId,
+    });
+    const newObj = state.objects[state.objects.length - 1];
+    if (newObj) {
+      state.select(newObj.id);
+      state.setEditingObjectId(newObj.id);
+    }
+  }, []);
+
   const addGroup = useCallback(() => {
     const state = useCanvasStore.getState();
     if (!state.boardId) return;
@@ -114,6 +138,8 @@ export function Toolbar() {
     { id: 'text', label: 'Text', shortcut: 'T', icon: textIcon, onClick: addTextCard, active: false },
     { id: 'image', label: 'Image', shortcut: '', icon: imageIcon, onClick: addImage, active: false },
     { id: 'link', label: 'Link', shortcut: '', icon: linkIcon, onClick: addLink, active: false },
+    { id: 'note', label: 'Note', shortcut: 'N', icon: noteIcon, onClick: addNoteCard, active: false },
+    { id: 'draw', label: 'Draw', shortcut: 'D', icon: drawIcon, onClick: toggleDrawMode, active: toolMode === 'draw' },
     { id: 'arrow', label: 'Arrow', shortcut: 'A', icon: arrowIcon, onClick: toggleArrowMode, active: toolMode === 'arrow' },
     { id: 'group', label: 'Group', shortcut: 'G', icon: groupIcon, onClick: addGroup, active: false },
   ];
@@ -249,6 +275,20 @@ const linkIcon = (
 const arrowIcon = (
   <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
     <line x1="5" y1="12" x2="19" y2="12" /><polyline points="12 5 19 12 12 19" />
+  </svg>
+);
+const drawIcon = (
+  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z" />
+    <path d="m15 5 4 4" />
+  </svg>
+);
+const noteIcon = (
+  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z" />
+    <polyline points="14 2 14 8 20 8" />
+    <line x1="16" y1="13" x2="8" y2="13" />
+    <line x1="16" y1="17" x2="8" y2="17" />
   </svg>
 );
 const groupIcon = (

@@ -2,6 +2,7 @@ import { useState, useCallback, useRef, useEffect } from 'react';
 import { useCanvasStore } from '../../stores/canvasStore';
 import { updateBoard, getBoard } from '../../db/boards';
 import { exportCanvas } from '../../utils/exportCanvas';
+import type { ExportQuality } from '../../utils/exportCanvas';
 import type { NavigateFunction } from 'react-router-dom';
 
 interface Props {
@@ -19,6 +20,7 @@ export function TopBar({ navigate }: Props) {
   const [editing, setEditing] = useState(false);
   const [exportOpen, setExportOpen] = useState(false);
   const [exporting, setExporting] = useState(false);
+  const [exportQuality, setExportQuality] = useState<ExportQuality>('high');
   const inputRef = useRef<HTMLInputElement>(null);
   const exportRef = useRef<HTMLDivElement>(null);
 
@@ -43,11 +45,11 @@ export function TopBar({ navigate }: Props) {
     setExporting(true);
     setExportOpen(false);
     try {
-      await exportCanvas(boardId, format, title);
+      await exportCanvas(boardId, format, title, exportQuality);
     } finally {
       setExporting(false);
     }
-  }, [boardId, title, exporting]);
+  }, [boardId, title, exporting, exportQuality]);
 
   useEffect(() => {
     if (!exportOpen) return;
@@ -241,9 +243,72 @@ export function TopBar({ navigate }: Props) {
             border: '1px solid rgba(0, 0, 0, 0.06)',
             boxShadow: '0 4px 20px rgba(0, 0, 0, 0.08)',
             padding: 4,
-            minWidth: 120,
+            minWidth: 180,
             zIndex: 1001,
           }}>
+            {/* Quality tier selector */}
+            <div style={{ padding: '6px 10px 4px', fontSize: 10, fontWeight: 600, color: 'var(--text-tertiary)', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+              Quality
+            </div>
+            <div style={{ display: 'flex', gap: 2, padding: '0 4px 4px' }}>
+              {([
+                { key: 'normal', label: 'Normal', hint: '< 10 MB' },
+                { key: 'high', label: 'High', hint: '< 25 MB' },
+                { key: 'ultra', label: 'Ultra', hint: '< 50 MB' },
+                { key: 'uncompressed', label: 'Full', hint: null },
+              ] as const).map((tier) => (
+                <div key={tier.key} style={{ position: 'relative', flex: 1 }}>
+                  <button
+                    onClick={() => setExportQuality(tier.key)}
+                    title={tier.hint
+                      ? `${tier.label} (${tier.hint})`
+                      : 'Uncompressed — file size may be very large'}
+                    style={{
+                      width: '100%',
+                      padding: '5px 0',
+                      background: exportQuality === tier.key ? 'var(--accent)' : 'transparent',
+                      color: exportQuality === tier.key ? '#faf8f5' : 'var(--text-secondary)',
+                      border: exportQuality === tier.key ? 'none' : '1px solid var(--border)',
+                      borderRadius: 5,
+                      fontSize: 11,
+                      fontWeight: 600,
+                      cursor: 'pointer',
+                      transition: 'all 0.15s',
+                    }}
+                    onMouseEnter={(e) => {
+                      if (exportQuality !== tier.key) {
+                        e.currentTarget.style.background = 'var(--accent-light)';
+                        e.currentTarget.style.color = 'var(--accent)';
+                        e.currentTarget.style.borderColor = 'var(--accent)';
+                      }
+                    }}
+                    onMouseLeave={(e) => {
+                      if (exportQuality !== tier.key) {
+                        e.currentTarget.style.background = 'transparent';
+                        e.currentTarget.style.color = 'var(--text-secondary)';
+                        e.currentTarget.style.borderColor = 'var(--border)';
+                      }
+                    }}
+                  >
+                    {tier.label}
+                  </button>
+                </div>
+              ))}
+            </div>
+            {exportQuality === 'uncompressed' && (
+              <div style={{
+                margin: '0 8px 4px',
+                padding: '4px 8px',
+                background: 'rgba(245, 158, 11, 0.1)',
+                borderRadius: 4,
+                fontSize: 10,
+                color: '#b45309',
+                lineHeight: 1.4,
+              }}>
+                File size may be very large
+              </div>
+            )}
+            <div style={{ height: 1, background: 'var(--border-light)', margin: '2px 8px' }} />
             {([['png', 'PNG'], ['jpg', 'JPG'], ['pdf', 'PDF']] as const).map(([fmt, label]) => (
               <button
                 key={fmt}

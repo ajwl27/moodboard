@@ -124,6 +124,38 @@ export function useKeyboardShortcuts(navigate: NavigateFunction) {
         return;
       }
 
+      // N — new note card
+      if (e.key === 'n' || e.key === 'N') {
+        const cam = state.camera;
+        const cx = (window.innerWidth / 2) / cam.zoom - cam.x;
+        const cy = (window.innerHeight / 2) / cam.zoom - cam.y;
+        const card = {
+          id: crypto.randomUUID(),
+          boardId: state.boardId!,
+          type: 'note' as const,
+          x: cx - 140,
+          y: cy - 100,
+          width: 280,
+          height: 200,
+          zIndex: state.getMaxZIndex() + 1,
+          locked: false,
+          colour: '#faf8f5',
+          title: '',
+          content: '',
+          layerId: state.activeLayerId,
+        };
+        state.addObject(card);
+        state.select(card.id);
+        state.setEditingObjectId(card.id);
+        return;
+      }
+
+      // D — draw mode
+      if (e.key === 'd' || e.key === 'D') {
+        state.setToolMode(state.toolMode === 'draw' ? 'select' : 'draw');
+        return;
+      }
+
       // A — arrow mode
       if (e.key === 'a' || e.key === 'A') {
         state.setToolMode(state.toolMode === 'arrow' ? 'select' : 'arrow');

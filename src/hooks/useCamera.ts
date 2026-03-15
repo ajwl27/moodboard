@@ -4,17 +4,20 @@ import { clamp } from '../utils/geometry';
 
 const MIN_ZOOM = 0.1;
 const MAX_ZOOM = 5.0;
+const RIGHT_CLICK_THRESHOLD = 5; // px — movement below this counts as a static right-click
 
 export function useCamera(
   containerRef: React.RefObject<HTMLDivElement | null>,
   canvasRef: React.RefObject<HTMLDivElement | null>,
   svgRef: React.RefObject<SVGSVGElement | null>,
   boardId: string | null,
+  onStaticRightClick?: (x: number, y: number, target: HTMLElement) => void,
 ) {
   const isPanningRef = useRef(false);
   const panStartRef = useRef({ x: 0, y: 0 });
   const cameraStartRef = useRef({ x: 0, y: 0 });
   const spaceHeldRef = useRef(false);
+  const rightClickRef = useRef<{ x: number; y: number; target: HTMLElement; panned: boolean } | null>(null);
 
   const applyTransform = useCallback(() => {
     const { camera } = useCanvasStore.getState();
@@ -53,6 +56,10 @@ export function useCamera(
     [containerRef, applyTransform],
   );
 
+  // Store the callback in a ref so the native listener always sees the latest version
+  const onStaticRightClickRef = useRef(onStaticRightClick);
+  onStaticRightClickRef.current = onStaticRightClick;
+
   useEffect(() => {
     const el = containerRef.current;
     if (!el) return;
@@ -84,10 +91,16 @@ export function useCamera(
     };
 
     const handlePointerDown = (e: PointerEvent) => {
+      // Right-click pan: allow on canvas objects and background, but not on UI overlays
+      const isOnCanvas =
+        e.target === el ||
+        canvasRef.current?.contains(e.target as Node) ||
+        svgRef.current?.contains(e.target as Node);
+
       const shouldPan =
         e.button === 1 ||
         (e.button === 0 && spaceHeldRef.current) ||
-        (e.button === 2 && e.target === el);
+        (e.button === 2 && isOnCanvas);
       if (shouldPan) {
         e.preventDefault();
         isPanningRef.current = true;
@@ -96,11 +109,30 @@ export function useCamera(
         cameraStartRef.current = { x: cam.x, y: cam.y };
         el.setPointerCapture(e.pointerId);
         el.style.cursor = 'grabbing';
+
+        if (e.button === 2) {
+          rightClickRef.current = {
+            x: e.clientX,
+            y: e.clientY,
+            target: e.target as HTMLElement,
+            panned: false,
+          };
+        }
       }
     };
 
     const handlePointerMove = (e: PointerEvent) => {
       if (!isPanningRef.current) return;
+
+      // Track whether right-click moved enough to count as a pan
+      if (rightClickRef.current && !rightClickRef.current.panned) {
+        const sdx = e.clientX - rightClickRef.current.x;
+        const sdy = e.clientY - rightClickRef.current.y;
+        if (Math.abs(sdx) > RIGHT_CLICK_THRESHOLD || Math.abs(sdy) > RIGHT_CLICK_THRESHOLD) {
+          rightClickRef.current.panned = true;
+        }
+      }
+
       const zoom = useCanvasStore.getState().camera.zoom;
       const dx = (e.clientX - panStartRef.current.x) / zoom;
       const dy = (e.clientY - panStartRef.current.y) / zoom;
@@ -116,6 +148,13 @@ export function useCamera(
         isPanningRef.current = false;
         el.releasePointerCapture(e.pointerId);
         el.style.cursor = '';
+
+        // Static right-click (no pan) → show context menu
+        if (rightClickRef.current && !rightClickRef.current.panned && onStaticRightClickRef.current) {
+          const { x, y, target } = rightClickRef.current;
+          onStaticRightClickRef.current(x, y, target);
+        }
+        rightClickRef.current = null;
       }
     };
 
@@ -148,5 +187,5 @@ export function useCamera(
       window.removeEventListener('keydown', handleKeyDown);
       window.removeEventListener('keyup', handleKeyUp);
     };
-  }, [containerRef, applyTransform, zoomToward, boardId]);
+  }, [containerRef, canvasRef, svgRef, applyTransform, zoomToward, boardId]);
 }

@@ -14,7 +14,7 @@ interface Props {
   initialCropY: number;
   initialCropWidth: number;
   initialCropHeight: number;
-  onConfirm: (crop: { cropX: number; cropY: number; cropWidth: number; cropHeight: number }) => void;
+  onConfirm: (crop: { cropX: number; cropY: number; cropWidth: number; cropHeight: number }, rotatedBlob?: Blob) => void;
   onCancel: () => void;
 }
 
@@ -24,6 +24,7 @@ export function CropModal({ fileId, initialCropX, initialCropY, initialCropWidth
   const [imgUrl, setImgUrl] = useState<string | null>(null);
   const [imgSize, setImgSize] = useState<{ w: number; h: number } | null>(null);
   const [crop, setCrop] = useState<CropRect>({ x: initialCropX, y: initialCropY, width: initialCropWidth, height: initialCropHeight });
+  const [rotatedBlob, setRotatedBlob] = useState<Blob | null>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const dragRef = useRef<{ type: 'move' | 'nw' | 'ne' | 'sw' | 'se'; startX: number; startY: number; startCrop: CropRect } | null>(null);
 
@@ -53,6 +54,30 @@ export function CropModal({ fileId, initialCropX, initialCropY, initialCropWidth
     const img = e.currentTarget;
     setImgSize({ w: img.naturalWidth, h: img.naturalHeight });
   }, []);
+
+  const rotateImage = useCallback(async () => {
+    if (!imgUrl || !imgSize) return;
+    const img = new Image();
+    img.src = imgUrl;
+    await new Promise<void>((resolve) => { img.onload = () => resolve(); });
+    const canvas = document.createElement('canvas');
+    // Swap width and height for 90° CCW rotation
+    canvas.width = img.naturalHeight;
+    canvas.height = img.naturalWidth;
+    const ctx = canvas.getContext('2d')!;
+    ctx.translate(0, canvas.height);
+    ctx.rotate(-Math.PI / 2);
+    ctx.drawImage(img, 0, 0);
+    const blob = await new Promise<Blob | null>((resolve) => canvas.toBlob(resolve, 'image/png'));
+    if (!blob) return;
+    // Update displayed image
+    if (imgUrl) URL.revokeObjectURL(imgUrl);
+    const newUrl = URL.createObjectURL(blob);
+    setImgUrl(newUrl);
+    setImgSize({ w: canvas.width, h: canvas.height });
+    setRotatedBlob(blob);
+    setCrop({ x: 0, y: 0, width: 1, height: 1 });
+  }, [imgUrl, imgSize]);
 
   // Get the displayed image rect within the container
   const getDisplayRect = useCallback(() => {
@@ -121,12 +146,27 @@ export function CropModal({ fileId, initialCropX, initialCropY, initialCropWidth
   }, []);
 
   const handleConfirm = useCallback(() => {
-    onConfirm({ cropX: crop.x, cropY: crop.y, cropWidth: crop.width, cropHeight: crop.height });
-  }, [crop, onConfirm]);
+    onConfirm({ cropX: crop.x, cropY: crop.y, cropWidth: crop.width, cropHeight: crop.height }, rotatedBlob ?? undefined);
+  }, [crop, onConfirm, rotatedBlob]);
 
   const handleReset = useCallback(() => {
     setCrop({ x: 0, y: 0, width: 1, height: 1 });
-  }, []);
+    setRotatedBlob(null);
+    // Reload original image
+    let url: string | null = null;
+    (async () => {
+      const file = await getFile(fileId);
+      if (file) {
+        if (imgUrl) URL.revokeObjectURL(imgUrl);
+        url = URL.createObjectURL(file.blob);
+        setImgUrl(url);
+        const img = new Image();
+        img.src = url;
+        await new Promise<void>((resolve) => { img.onload = () => resolve(); });
+        setImgSize({ w: img.naturalWidth, h: img.naturalHeight });
+      }
+    })();
+  }, [fileId, imgUrl]);
 
   if (!imgUrl) return null;
 
@@ -225,6 +265,15 @@ export function CropModal({ fileId, initialCropX, initialCropY, initialCropWidth
 
       {/* Buttons */}
       <div style={{ display: 'flex', gap: 10, marginTop: 20 }} onClick={(e) => e.stopPropagation()}>
+        <button
+          onClick={rotateImage}
+          style={{ ...buttonBase, background: 'rgba(255,255,255,0.15)', color: '#fff', display: 'flex', alignItems: 'center', gap: 6 }}
+        >
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M2.5 2v6h6" /><path d="M2.5 8a10 10 0 0 1 17.3-5" /><path d="M22 22v-6h-6" /><path d="M22 16a10 10 0 0 1-17.3 5" />
+          </svg>
+          Rotate Left
+        </button>
         <button
           onClick={handleReset}
           style={{ ...buttonBase, background: 'rgba(255,255,255,0.15)', color: '#fff' }}

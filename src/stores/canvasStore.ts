@@ -20,7 +20,6 @@ interface CanvasState {
   clipboardObjects: CanvasObject[];
   gridEnabled: boolean;
   gridSize: number;
-  smartGuidesEnabled: boolean;
 
   // History
   undoStack: HistoryEntry[];
@@ -36,6 +35,11 @@ interface CanvasState {
   layers: Layer[];
   layersPanelOpen: boolean;
   activeLayerId: string | null;
+
+  // Draw tool
+  drawBrushSize: number;
+  drawBrushColour: string;
+  drawIsEraser: boolean;
 
   // Dirty tracking for auto-save
   dirtyObjectIds: Set<string>;
@@ -76,7 +80,6 @@ interface CanvasActions {
 
   // Grid
   toggleGrid: () => void;
-  toggleSmartGuides: () => void;
 
   // Layers
   addLayer: (name: string, colour: string) => void;
@@ -104,6 +107,11 @@ interface CanvasActions {
   // Crop modal
   setCropModalObjectId: (id: string | null) => void;
 
+  // Draw tool
+  setDrawBrushSize: (size: number) => void;
+  setDrawBrushColour: (colour: string) => void;
+  setDrawIsEraser: (isEraser: boolean) => void;
+
   // Helpers
   getObject: (id: string) => CanvasObject | undefined;
   getMaxZIndex: () => number;
@@ -124,7 +132,6 @@ export const useCanvasStore = create<CanvasStore>((set, get) => ({
   clipboardObjects: [],
   gridEnabled: false,
   gridSize: 20,
-  smartGuidesEnabled: true,
   lightboxFileId: null,
   cropModalObjectId: null,
   layers: [],
@@ -132,6 +139,9 @@ export const useCanvasStore = create<CanvasStore>((set, get) => ({
   activeLayerId: null,
   undoStack: [],
   redoStack: [],
+  drawBrushSize: 3,
+  drawBrushColour: '#2C2825',
+  drawIsEraser: false,
   dirtyObjectIds: new Set<string>(),
   boardDirty: false,
 
@@ -373,7 +383,6 @@ export const useCanvasStore = create<CanvasStore>((set, get) => ({
 
   // --- Grid ---
   toggleGrid: () => set((s) => ({ gridEnabled: !s.gridEnabled })),
-  toggleSmartGuides: () => set((s) => ({ smartGuidesEnabled: !s.smartGuidesEnabled })),
 
   // --- Layers ---
   addLayer: (name, colour) => {
@@ -572,6 +581,11 @@ export const useCanvasStore = create<CanvasStore>((set, get) => ({
 
   // --- Crop modal ---
   setCropModalObjectId: (id) => set({ cropModalObjectId: id }),
+
+  // --- Draw tool ---
+  setDrawBrushSize: (size) => set({ drawBrushSize: size }),
+  setDrawBrushColour: (colour) => set({ drawBrushColour: colour }),
+  setDrawIsEraser: (isEraser) => set({ drawIsEraser: isEraser }),
 
   // --- Dirty tracking ---
   clearDirty: () => set({ dirtyObjectIds: new Set(), boardDirty: false }),

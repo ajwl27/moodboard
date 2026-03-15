@@ -14,6 +14,8 @@ export function ContextMenu({ x, y, targetElement, onClose }: Props) {
   const selectedIds = useCanvasStore((s) => s.selectedIds);
   const layers = useCanvasStore((s) => s.layers);
   const [showLayerSubmenu, setShowLayerSubmenu] = useState(false);
+  const [showFontSizeSubmenu, setShowFontSizeSubmenu] = useState(false);
+  const [showFontColourSubmenu, setShowFontColourSubmenu] = useState(false);
 
   const objectEl = targetElement.closest('[data-object-id]');
   const objectId = objectEl?.getAttribute('data-object-id') ?? null;
@@ -138,6 +140,91 @@ export function ContextMenu({ x, y, targetElement, onClose }: Props) {
             Crop Image
           </button>
         )}
+        {obj && (obj.type === 'text' || obj.type === 'note') && selectedIds.size === 1 && (
+          <>
+            <div style={{ position: 'relative' }}>
+              <button style={item}
+                onMouseEnter={(e) => { hover(e); setShowFontSizeSubmenu(true); setShowFontColourSubmenu(false); }}
+                onMouseLeave={(e) => { unhover(e); }}
+                onClick={() => setShowFontSizeSubmenu(!showFontSizeSubmenu)}
+              >
+                Font Size
+                <span style={{ marginLeft: 'auto', fontSize: 11, opacity: 0.5 }}>{'>'}</span>
+              </button>
+              {showFontSizeSubmenu && (
+                <div
+                  style={{
+                    position: 'absolute', left: '100%', top: 0, marginLeft: 4,
+                    background: 'rgba(250, 248, 245, 0.95)', backdropFilter: 'blur(12px)',
+                    border: '1px solid rgba(0,0,0,0.06)', borderRadius: 8,
+                    boxShadow: '0 4px 20px rgba(0,0,0,0.08)', padding: 4, minWidth: 80,
+                    zIndex: 100000,
+                  }}
+                  onMouseEnter={() => setShowFontSizeSubmenu(true)}
+                  onMouseLeave={() => setShowFontSizeSubmenu(false)}
+                >
+                  {[10, 12, 14, 16, 18, 24, 32, 48].map((size) => (
+                    <button key={size} style={item} onClick={() => {
+                      store.updateObject(obj.id, { fontSize: size } as any);
+                      onClose();
+                    }}
+                      onMouseEnter={(e) => hover(e)} onMouseLeave={(e) => unhover(e)}>
+                      {size}px
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
+            <div style={{ position: 'relative' }}>
+              <button style={item}
+                onMouseEnter={(e) => { hover(e); setShowFontColourSubmenu(true); setShowFontSizeSubmenu(false); }}
+                onMouseLeave={(e) => { unhover(e); }}
+                onClick={() => setShowFontColourSubmenu(!showFontColourSubmenu)}
+              >
+                Font Colour
+                <span style={{ marginLeft: 'auto', fontSize: 11, opacity: 0.5 }}>{'>'}</span>
+              </button>
+              {showFontColourSubmenu && (
+                <div
+                  style={{
+                    position: 'absolute', left: '100%', top: 0, marginLeft: 4,
+                    background: 'rgba(250, 248, 245, 0.95)', backdropFilter: 'blur(12px)',
+                    border: '1px solid rgba(0,0,0,0.06)', borderRadius: 8,
+                    boxShadow: '0 4px 20px rgba(0,0,0,0.08)', padding: 6, minWidth: 120,
+                    zIndex: 100000,
+                    display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 4,
+                  }}
+                  onMouseEnter={() => setShowFontColourSubmenu(true)}
+                  onMouseLeave={() => setShowFontColourSubmenu(false)}
+                >
+                  {[
+                    { colour: '#2C2825', label: 'Black' },
+                    { colour: '#6B6560', label: 'Dark Grey' },
+                    { colour: '#DC2626', label: 'Red' },
+                    { colour: '#2563EB', label: 'Blue' },
+                    { colour: '#16A34A', label: 'Green' },
+                    { colour: '#EA580C', label: 'Orange' },
+                    { colour: '#9333EA', label: 'Purple' },
+                    { colour: '#FFFFFF', label: 'White' },
+                  ].map(({ colour, label }) => (
+                    <button key={colour} title={label} onClick={() => {
+                      store.updateObject(obj.id, { fontColour: colour } as any);
+                      onClose();
+                    }}
+                      style={{
+                        width: 24, height: 24, borderRadius: 6, border: `2px solid ${colour === '#FFFFFF' ? '#ddd' : 'transparent'}`,
+                        background: colour, cursor: 'pointer', padding: 0,
+                        transition: 'transform 0.1s',
+                      }}
+                      onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.transform = 'scale(1.15)'; }}
+                      onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.transform = ''; }}
+                    />
+                  ))}
+                </div>
+              )}
+            </div>
+          </>
+        )}
         {obj && (
           <button style={item} onClick={() => { store.updateObject(obj.id, { locked: !obj.locked }); onClose(); }}
             onMouseEnter={(e) => hover(e)} onMouseLeave={(e) => unhover(e)}>
@@ -171,6 +258,25 @@ export function ContextMenu({ x, y, targetElement, onClose }: Props) {
         onClose();
       }} onMouseEnter={(e) => hover(e)} onMouseLeave={(e) => unhover(e)}>
         Add Text
+      </button>
+      <button style={item} onClick={() => {
+        const cam = store.camera;
+        const el = targetElement.closest('[class*="container"]') as HTMLElement;
+        if (!el) { onClose(); return; }
+        const rect = el.getBoundingClientRect();
+        const cx = (x - rect.left) / cam.zoom - cam.x;
+        const cy = (y - rect.top) / cam.zoom - cam.y;
+        store.addObject({
+          id: crypto.randomUUID(), boardId: store.boardId!, type: 'note',
+          x: cx, y: cy, width: 280, height: 200,
+          zIndex: store.getMaxZIndex() + 1, locked: false, colour: '#faf8f5',
+          title: '', content: '', layerId: store.activeLayerId,
+        });
+        const newObj = store.objects[store.objects.length - 1];
+        if (newObj) store.setEditingObjectId(newObj.id);
+        onClose();
+      }} onMouseEnter={(e) => hover(e)} onMouseLeave={(e) => unhover(e)}>
+        Add Note
       </button>
       <button style={item} onClick={() => {
         if (store.clipboardObjects.length > 0) store.pasteClipboard();

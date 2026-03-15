@@ -164,10 +164,39 @@ export function PropertyPanel() {
           </div>
 
           {/* Type-specific */}
-          {single.type === 'text' && (
+          {(single.type === 'text' || single.type === 'note') && (
             <div style={section}>
-              <div style={heading}>Text</div>
-              <Field label="Size" value={single.fontSize} onChange={(v) => updateProp(single.id, { fontSize: Math.max(8, v) })} />
+              <div style={heading}>{single.type === 'note' ? 'Note' : 'Text'}</div>
+              <Field label="Size" value={single.type === 'text' ? single.fontSize : (single.fontSize ?? 14)} onChange={(v) => updateProp(single.id, { fontSize: Math.max(8, v) })} />
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 8 }}>
+                <span style={{ fontSize: 12, color: 'var(--text-secondary)', width: 50 }}>Font</span>
+                <input
+                  type="color"
+                  value={(single as any).fontColour || '#2C2825'}
+                  onChange={(e) => updateProp(single.id, { fontColour: e.target.value } as any)}
+                  style={{ width: 28, height: 28, border: '2px solid var(--border)', borderRadius: 8, padding: 0, cursor: 'pointer', background: 'none' }}
+                />
+                <span style={{ fontSize: 12, color: 'var(--text-tertiary)', fontFamily: 'var(--mono)' }}>
+                  {((single as any).fontColour || '#2C2825').toUpperCase()}
+                </span>
+              </div>
+              <label style={{ display: 'flex', alignItems: 'center', gap: 8, cursor: 'pointer', padding: '4px 0', marginTop: 8 }}>
+                <div style={{
+                  width: 18, height: 18, borderRadius: 5,
+                  border: `2px solid ${(single as any).transparentBg ? 'var(--accent)' : 'var(--border)'}`,
+                  background: (single as any).transparentBg ? 'var(--accent)' : 'transparent',
+                  display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  transition: 'all 0.15s',
+                }}>
+                  {(single as any).transparentBg && (
+                    <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+                      <polyline points="20 6 9 17 4 12" />
+                    </svg>
+                  )}
+                </div>
+                <input type="checkbox" checked={!!(single as any).transparentBg} onChange={(e) => updateProp(single.id, { transparentBg: e.target.checked } as any)} style={{ display: 'none' }} />
+                <span style={{ fontSize: 13, color: 'var(--text-secondary)' }}>Transparent background</span>
+              </label>
             </div>
           )}
 
@@ -180,6 +209,9 @@ export function PropertyPanel() {
               />
               <div style={{ marginTop: 8 }}>
                 <InputField label="Caption" value={single.caption} onChange={(v) => updateProp(single.id, { caption: v })} />
+              </div>
+              <div style={{ marginTop: 8 }}>
+                <InputField label="Link URL" value={single.linkUrl || ''} onChange={(v) => updateProp(single.id, { linkUrl: v || undefined } as any)} />
               </div>
               <div style={{ marginTop: 10, display: 'flex', alignItems: 'center', gap: 8 }}>
                 <button
@@ -257,6 +289,25 @@ export function PropertyPanel() {
                   options={[{ value: 'solid', label: 'Solid' }, { value: 'dashed', label: 'Dashed' }, { value: 'dotted', label: 'Dotted' }, { value: 'none', label: 'None' }]}
                   onChange={(v) => updateProp(single.id, { borderStyle: v as any })}
                 />
+              </div>
+            </div>
+          )}
+
+          {single.type === 'drawing' && (
+            <div style={section}>
+              <div style={heading}>Drawing</div>
+              <Field label="Width" value={single.strokeWidth} onChange={(v) => updateProp(single.id, { strokeWidth: Math.max(1, v) })} />
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 8 }}>
+                <span style={{ fontSize: 12, color: 'var(--text-secondary)', width: 50 }}>Stroke</span>
+                <input
+                  type="color"
+                  value={single.strokeColour || '#2C2825'}
+                  onChange={(e) => updateProp(single.id, { strokeColour: e.target.value } as any)}
+                  style={{ width: 28, height: 28, border: '2px solid var(--border)', borderRadius: 8, padding: 0, cursor: 'pointer', background: 'none' }}
+                />
+                <span style={{ fontSize: 12, color: 'var(--text-tertiary)', fontFamily: 'var(--mono)' }}>
+                  {(single.strokeColour || '#2C2825').toUpperCase()}
+                </span>
               </div>
             </div>
           )}

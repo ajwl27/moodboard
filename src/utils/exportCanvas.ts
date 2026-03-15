@@ -1,15 +1,24 @@
 import { getObjectsByBoard, getFile } from '../db/objects';
 import { boundingRect, nearestEdgePoint } from './geometry';
-import type { CanvasObject, Arrow, ImageCard, TextCard, LinkCard, FileCard, GroupRegion } from '../types';
+import type { CanvasObject, Arrow, ImageCard, TextCard, LinkCard, FileCard, GroupRegion, NoteCard, DrawingCard } from '../types';
 import { jsPDF } from 'jspdf';
 
 const PADDING = 40;
-const DPR = 2;
+
+export type ExportQuality = 'normal' | 'high' | 'ultra' | 'uncompressed';
+
+const QUALITY_PRESETS: Record<ExportQuality, { dpr: number; jpgQuality: number }> = {
+  normal:       { dpr: 1,   jpgQuality: 0.8 },
+  high:         { dpr: 2,   jpgQuality: 0.9 },
+  ultra:        { dpr: 2,   jpgQuality: 0.95 },
+  uncompressed: { dpr: 3,   jpgQuality: 1.0 },
+};
 
 export async function exportCanvas(
   boardId: string,
   format: 'png' | 'jpg' | 'pdf',
   boardTitle: string,
+  quality: ExportQuality = 'high',
 ): Promise<void> {
   const objects = await getObjectsByBoard(boardId);
   if (objects.length === 0) return;
@@ -17,6 +26,9 @@ export async function exportCanvas(
   const rects = objects.map((o) => ({ x: o.x, y: o.y, width: o.width, height: o.height }));
   const bounds = boundingRect(rects);
   if (!bounds) return;
+
+  const preset = QUALITY_PRESETS[quality];
+  const DPR = preset.dpr;
 
   const canvasWidth = bounds.width + PADDING * 2;
   const canvasHeight = bounds.height + PADDING * 2;
@@ -31,8 +43,8 @@ export async function exportCanvas(
   ctx.scale(DPR, DPR);
   ctx.translate(-bounds.x + PADDING, -bounds.y + PADDING);
 
-  // White background
-  ctx.fillStyle = '#eef0f4';
+  // Background
+  ctx.fillStyle = '#f2ede6';
   ctx.fillRect(bounds.x - PADDING, bounds.y - PADDING, canvasWidth, canvasHeight);
 
   // Sort by zIndex and render
@@ -52,8 +64,8 @@ export async function exportCanvas(
     doc.save(filename);
   } else {
     const mimeType = format === 'jpg' ? 'image/jpeg' : 'image/png';
-    const quality = format === 'jpg' ? 0.92 : undefined;
-    const blob = await new Promise<Blob | null>((resolve) => canvas.toBlob(resolve, mimeType, quality));
+    const jpgQ = format === 'jpg' ? preset.jpgQuality : undefined;
+    const blob = await new Promise<Blob | null>((resolve) => canvas.toBlob(resolve, mimeType, jpgQ));
     if (!blob) return;
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
@@ -85,6 +97,12 @@ async function renderObject(ctx: CanvasRenderingContext2D, obj: CanvasObject, al
       break;
     case 'arrow':
       renderArrow(ctx, obj, allObjects);
+      break;
+    case 'note':
+      renderNote(ctx, obj);
+      break;
+    case 'drawing':
+      renderDrawing(ctx, obj);
       break;
   }
 }
@@ -126,12 +144,14 @@ function renderGroup(ctx: CanvasRenderingContext2D, obj: GroupRegion) {
 function renderText(ctx: CanvasRenderingContext2D, obj: TextCard) {
   const { x, y, width, height } = obj;
 
-  // Card background + shadow
-  drawCardBackground(ctx, x, y, width, height, obj.colour || '#ffffff');
+  // Card background + shadow (skip when transparent)
+  if (!obj.transparentBg) {
+    drawCardBackground(ctx, x, y, width, height, obj.colour || '#ffffff');
+  }
 
   // Text content
   if (obj.content) {
-    ctx.fillStyle = '#0f172a';
+    ctx.fillStyle = obj.fontColour || '#0f172a';
     ctx.font = `${obj.fontSize || 14}px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif`;
     ctx.textBaseline = 'top';
     wrapText(ctx, obj.content, x + 14, y + 14, width - 28, (obj.fontSize || 14) * 1.6);
@@ -358,6 +378,63 @@ function renderArrow(ctx: CanvasRenderingContext2D, arrow: Arrow, allObjects: Ca
   }
 }
 
+function renderNote(ctx: CanvasRenderingContext2D, obj: NoteCard) {
+  const { x, y, width, height } = obj;
+
+  if (!obj.transparentBg) {
+    drawCardBackground(ctx, x, y, width, height, obj.colour || '#faf8f5');
+  }
+
+  const fontColour = obj.fontColour || '#2C2825';
+  const fontSize = obj.fontSize ?? 14;
+
+  // Title (centered, 18px bold)
+  if (obj.title) {
+    ctx.fillStyle = fontColour;
+    ctx.font = `700 18px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif`;
+    ctx.textBaseline = 'top';
+    ctx.textAlign = 'center';
+    const title = truncateText(ctx, obj.title, width - 20);
+    ctx.fillText(title, x + width / 2, y + 10);
+    ctx.textAlign = 'left';
+  }
+
+  // Divider line
+  const dividerY = y + 34;
+  ctx.strokeStyle = 'rgba(0,0,0,0.08)';
+  ctx.lineWidth = 1;
+  ctx.beginPath();
+  ctx.moveTo(x + 10, dividerY);
+  ctx.lineTo(x + width - 10, dividerY);
+  ctx.stroke();
+
+  // Content
+  if (obj.content) {
+    ctx.fillStyle = fontColour;
+    ctx.font = `${fontSize}px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif`;
+    ctx.textBaseline = 'top';
+    wrapText(ctx, obj.content, x + 10, dividerY + 8, width - 20, fontSize * 1.6);
+  }
+}
+
+function renderDrawing(ctx: CanvasRenderingContext2D, obj: DrawingCard) {
+  const { x, y, width, height, points } = obj;
+  if (points.length < 2) return;
+
+  ctx.strokeStyle = obj.strokeColour || '#2C2825';
+  ctx.lineWidth = obj.strokeWidth || 3;
+  ctx.lineCap = 'round';
+  ctx.lineJoin = 'round';
+  ctx.setLineDash([]);
+
+  ctx.beginPath();
+  ctx.moveTo(x + points[0].x * width, y + points[0].y * height);
+  for (let i = 1; i < points.length; i++) {
+    ctx.lineTo(x + points[i].x * width, y + points[i].y * height);
+  }
+  ctx.stroke();
+}
+
 // --- Helpers ---
 
 function drawCardBackground(ctx: CanvasRenderingContext2D, x: number, y: number, w: number, h: number, colour: string) {
@@ -456,4 +533,42 @@ function formatFileSize(bytes: number): string {
   if (bytes < 1024) return `${bytes} B`;
   if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
   return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
+}
+
+// --- Board thumbnail generation ---
+
+const THUMB_MAX = 400;
+
+export async function generateBoardThumbnail(boardId: string): Promise<Blob | null> {
+  const objects = await getObjectsByBoard(boardId);
+  if (objects.length === 0) return null;
+
+  const rects = objects.map((o) => ({ x: o.x, y: o.y, width: o.width, height: o.height }));
+  const bounds = boundingRect(rects);
+  if (!bounds) return null;
+
+  const pad = 20;
+  const contentW = bounds.width + pad * 2;
+  const contentH = bounds.height + pad * 2;
+  const scale = Math.min(THUMB_MAX / contentW, THUMB_MAX / contentH, 1);
+  const w = Math.ceil(contentW * scale);
+  const h = Math.ceil(contentH * scale);
+
+  const canvas = document.createElement('canvas');
+  canvas.width = w;
+  canvas.height = h;
+  const ctx = canvas.getContext('2d')!;
+
+  ctx.scale(scale, scale);
+  ctx.translate(-bounds.x + pad, -bounds.y + pad);
+
+  ctx.fillStyle = '#f2ede6';
+  ctx.fillRect(bounds.x - pad, bounds.y - pad, contentW, contentH);
+
+  const sorted = objects.slice().sort((a, b) => a.zIndex - b.zIndex);
+  for (const obj of sorted) {
+    await renderObject(ctx, obj, objects);
+  }
+
+  return new Promise<Blob | null>((resolve) => canvas.toBlob(resolve, 'image/png'));
 }

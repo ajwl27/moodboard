@@ -14,7 +14,11 @@
       "Bash(cd /c/Users/orca/project_organiser && timeout 8 npx vite --host 2>&1 || true)",
       "Bash(curl -s \"https://jsonlink.io/api/extract?url=https://google.com\" 2>&1 | head -20)",
       "Bash(curl -s \"https://api.microlink.io/?url=https://google.com\" 2>&1 | head -5)",
-      "Bash(cd /c/Users/orca/project_organiser && npm install jspdf)"
+      "Bash(cd /c/Users/orca/project_organiser && npm install jspdf)",
+      "Bash(find /c/Users/orca/project_organiser/src -type f \\\\\\( -name \"*.ts\" -o -name \"*.tsx\" \\\\\\) 2>/dev/null | head -80)",
+      "Bash(cat \"C:\\\\Users\\\\orca\\\\.claude\\\\projects\\\\C--Users-orca-project-organiser\\\\a30f65af-856f-4ff1-af6b-9f8713504d84\\\\tool-results\\\\toolu_0193xFrtASjnte8FcTRvnGGr.json\" | python3 -c \"import sys,json; data=json.load\\(sys.stdin\\); print\\(data[0]['text']\\)\" 2>/dev/null || cat \"C:\\\\Users\\\\orca\\\\.claude\\\\projects\\\\C--Users-orca-project-organiser\\\\a30f65af-856f-4ff1-af6b-9f8713504d84\\\\tool-results\\\\toolu_0193xFrtASjnte8FcTRvnGGr.json\" | python -c \"import sys,json; data=json.load\\(sys.stdin\\); print\\(data[0]['text']\\)\")",
+      "Bash(cd C:/Users/orca/project_organiser && npm run build 2>&1 | head -60)",
+      "Bash(cd C:/Users/orca/project_organiser && npm run build 2>&1 | head -30)"
     ]
   }
 }

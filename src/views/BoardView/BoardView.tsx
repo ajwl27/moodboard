@@ -1,9 +1,10 @@
 import { useEffect, useRef, useCallback, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useCanvasStore } from '../../stores/canvasStore';
-import { getBoard } from '../../db/boards';
-import { getObjectsByBoard } from '../../db/objects';
+import { getBoard, updateBoard } from '../../db/boards';
+import { getObjectsByBoard, updateFile } from '../../db/objects';
 import { getDirHandle } from '../../db/filesystem';
+import { generateBoardThumbnail } from '../../utils/exportCanvas';
 import { useCamera } from '../../hooks/useCamera';
 import { useSelection } from '../../hooks/useSelection';
 import { useDragMove } from '../../hooks/useDragMove';
@@ -14,13 +15,14 @@ import { useKeyboardShortcuts } from '../../hooks/useKeyboardShortcuts';
 import { useAutoSave } from '../../hooks/useAutoSave';
 import { useViewportCulling } from '../../hooks/useViewportCulling';
 import { useArrowDrawing } from '../../hooks/useArrowDrawing';
+import { useDrawing } from '../../hooks/useDrawing';
 import { CanvasObject } from '../../components/canvas/CanvasObject';
 import { SelectionHandles } from '../../components/canvas/SelectionHandles';
 import { SelectionRect } from '../../components/canvas/SelectionRect';
-import { SmartGuides } from '../../components/canvas/SmartGuides';
 import { ArrowLayer } from '../../components/canvas/ArrowLayer';
 import { ContextMenu } from '../../components/ContextMenu';
 import { Toolbar } from './Toolbar';
+import { DrawToolBar } from './DrawToolBar';
 import { TopBar } from './TopBar';
 import { PropertyPanel } from './PropertyPanel';
 import { Lightbox } from '../../components/Lightbox';
@@ -68,22 +70,47 @@ export function BoardView() {
     })();
     return () => {
       cancelled = true;
+      // Generate thumbnail before unloading (fire-and-forget)
+      const boardId = useCanvasStore.getState().boardId;
+      if (boardId) {
+        generateBoardThumbnail(boardId).then((blob) => {
+          if (blob) updateBoard(boardId, { thumbnail: blob });
+        }).catch(() => {});
+      }
       unloadBoard();
     };
   }, [id, navigate, loadBoard, unloadBoard]);
 
   // Hooks
-  useCamera(containerRef, canvasRef, svgRef, boardId);
+  const { contextMenu, showContextMenu, hideContextMenu } = useContextMenu();
+
+  // Right-click without drag → show context menu
+  const handleStaticRightClick = useCallback(
+    (x: number, y: number, target: HTMLElement) => {
+      const objectEl = target.closest('[data-object-id]');
+      const objectId = objectEl?.getAttribute('data-object-id');
+      if (objectId) {
+        const store = useCanvasStore.getState();
+        if (!store.selectedIds.has(objectId)) {
+          store.select(objectId);
+        }
+      }
+      showContextMenu(x, y, target);
+    },
+    [showContextMenu],
+  );
+
+  useCamera(containerRef, canvasRef, svgRef, boardId, handleStaticRightClick);
   const { marquee, onPointerDown: selectionPointerDown } = useSelection(containerRef);
-  const { onPointerDown: dragPointerDown } = useDragMove(containerRef);
-  const { onPointerDown: resizePointerDown } = useResize(containerRef);
+  const { onPointerDown: dragPointerDown, dragging } = useDragMove(containerRef);
+  const { onPointerDown: resizePointerDown, resizing } = useResize(containerRef);
   useDropzone(containerRef);
   useClipboard();
   useKeyboardShortcuts(navigate);
   useAutoSave();
   const visibleObjectIds = useViewportCulling(containerRef);
-  const { contextMenu, showContextMenu, hideContextMenu } = useContextMenu();
   const { drawState, handleCanvasClick: arrowClick, handleMouseMove: arrowMove } = useArrowDrawing(containerRef);
+  const { drawState: freeDrawState, handlePointerDown: drawPointerDown, handlePointerMove: drawPointerMove, handlePointerUp: drawPointerUp } = useDrawing(containerRef);
 
   // Object pointer down — select + start drag
   const handleObjectPointerDown = useCallback(
@@ -111,34 +138,26 @@ export function BoardView() {
     [dragPointerDown],
   );
 
-  // Canvas pointer down — marquee selection on empty space
+  // Canvas pointer down — marquee selection on empty space, or draw mode
   const handleCanvasPointerDown = useCallback(
     (e: React.PointerEvent) => {
+      if (e.button === 0 && toolMode === 'draw') {
+        drawPointerDown(e);
+        return;
+      }
       if (e.button === 0 && e.target === containerRef.current) {
         selectionPointerDown(e);
       }
     },
-    [selectionPointerDown],
+    [selectionPointerDown, toolMode, drawPointerDown],
   );
 
+  // Suppress native context menu — our custom menu is shown via handleStaticRightClick
   const handleContextMenuEvent = useCallback(
     (e: React.MouseEvent) => {
       e.preventDefault();
-      // Only show context menu on objects; right-click on empty space is handled by useCamera for pan
-      if (e.target !== containerRef.current) {
-        // Select the right-clicked object if not already selected
-        const objectEl = (e.target as HTMLElement).closest('[data-object-id]');
-        const objectId = objectEl?.getAttribute('data-object-id');
-        if (objectId) {
-          const store = useCanvasStore.getState();
-          if (!store.selectedIds.has(objectId)) {
-            store.select(objectId);
-          }
-        }
-        showContextMenu(e.clientX, e.clientY, e.target as HTMLElement);
-      }
     },
-    [showContextMenu],
+    [],
   );
 
   // Double-click empty canvas → create text card
@@ -208,8 +227,10 @@ export function BoardView() {
   return (
     <div
       ref={containerRef}
-      className={`${styles.container} ${toolMode === 'arrow' ? styles.arrowMode : ''}`}
+      className={`${styles.container} ${toolMode === 'arrow' ? styles.arrowMode : ''} ${toolMode === 'draw' ? styles.drawMode : ''}`}
       onPointerDown={handleCanvasPointerDown}
+      onPointerMove={toolMode === 'draw' ? drawPointerMove : undefined}
+      onPointerUp={toolMode === 'draw' ? drawPointerUp : undefined}
       onContextMenu={handleContextMenuEvent}
       onDoubleClick={handleDoubleClick}
       onClick={handleClick}
@@ -248,11 +269,11 @@ export function BoardView() {
                   key={obj.id}
                   obj={obj}
                   selected={selectedIds.has(obj.id)}
+                  interacting={dragging || resizing}
                   onPointerDown={handleObjectPointerDown}
                   onResizePointerDown={resizePointerDown}
                 />
               ))}
-            <SmartGuides />
           </div>
 
           <svg
@@ -263,6 +284,18 @@ export function BoardView() {
             height="1"
           >
             <ArrowLayer arrows={arrows} />
+            {/* Freehand drawing preview (brush mode only) */}
+            {freeDrawState.isDrawing && freeDrawState.points.length > 1 && !useCanvasStore.getState().drawIsEraser && (
+              <polyline
+                points={freeDrawState.points.map((p) => `${p.x},${p.y}`).join(' ')}
+                fill="none"
+                stroke={useCanvasStore.getState().drawBrushColour}
+                strokeWidth={useCanvasStore.getState().drawBrushSize}
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                pointerEvents="none"
+              />
+            )}
             {/* Arrow drawing preview */}
             {drawState.startPoint && drawState.previewEnd && (
               <line
@@ -283,6 +316,7 @@ export function BoardView() {
 
           <TopBar navigate={navigate} />
           <Toolbar />
+          {toolMode === 'draw' && <DrawToolBar />}
           <QuickAddBar />
           <PropertyPanel />
           {layersPanelOpen && <LayersPanel />}
@@ -331,7 +365,10 @@ function CropModalWrapper() {
       initialCropY={obj.cropY ?? 0}
       initialCropWidth={obj.cropWidth ?? 1}
       initialCropHeight={obj.cropHeight ?? 1}
-      onConfirm={(crop) => {
+      onConfirm={async (crop, rotatedBlob) => {
+        if (rotatedBlob) {
+          await updateFile(obj.fileId, { blob: rotatedBlob, size: rotatedBlob.size });
+        }
         useCanvasStore.getState().updateObject(cropModalObjectId, crop);
         useCanvasStore.getState().setCropModalObjectId(null);
       }}
