@@ -1,8 +1,10 @@
 # moody
 
-I wanted a moodboard app for collecting inspiration for my new house — photos, products, colour palettes, reference images — and arranging them spatially so I could actually *think* with them. Every existing option was either subscription-based, locked behind an account, cluttered with collaboration features I'd never use, or just not very good.
+I wanted a moodboard app for collecting inspiration for my new house. It needed to handle photos, product links, colour palettes, reference images, text and scribbles.
 
-So I built one. moody is a free, open-source, local-first infinite canvas. Drop images, notes, links, and files onto a board, arrange them however makes sense to you, and connect ideas with arrows. No accounts, no cloud, no server. Your data stays on your machine.
+Every existing option I found was either subscription-based, cluttered with features I'd never use, ugly or otherwise just not very good.
+
+So I built one with claude code. moody is a free, open-source, local-first infinite canvas. Drop images, notes, links, and files onto a board, arrange them however makes sense to you, and connect ideas with arrows. No accounts, no cloud, no server. All data stays on your machine, with each board working in a folder like Obsidian's vaults.
 
 ## Getting Started
 
@@ -34,13 +36,13 @@ Create as many boards as you need from the home screen. Each board is an indepen
 
 ### Canvas Objects
 
-Eight object types live on the canvas:
+Currently there are eight object types:
 
 | Type | Description |
 |------|-------------|
-| **Text Card** | Plain text card with configurable font size, colour, and optional transparent background |
-| **Note Card** | Titled note with a header, divider, and body — ideal for structured thoughts |
-| **Image Card** | Displays images with cover/contain fit, optional captions, cropping, and a full-resolution lightbox |
+| **Text Card** | Plain text card with configurable font size, colour, and optional background |
+| **Note Card** | Titled note with a header, divider, and body, meant for structured thoughts |
+| **Image Card** | Displays images with cover/contain fit, optional captions, cropping/rotating, and a full-resolution lightbox *(click for full resolution)* |
 | **Link Card** | Bookmarks a URL with auto-fetched Open Graph metadata (title, description, thumbnail) |
 | **File Card** | Attaches any file type, showing filename, size, and a type-appropriate icon |
 | **Group Region** | A translucent labelled region for visually organising areas of the canvas |
