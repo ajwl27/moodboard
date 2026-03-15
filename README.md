@@ -1,14 +1,8 @@
 # moody
 
-A local-first infinite canvas for organising creative projects. Drop images, notes, links, and files onto a spatial canvas, arrange them meaningfully, and connect ideas with arrows. No accounts, no cloud, no server — your data stays on your machine.
+I wanted a moodboard app for collecting inspiration for my new house — photos, products, colour palettes, reference images — and arranging them spatially so I could actually *think* with them. Every existing option was either subscription-based, locked behind an account, cluttered with collaboration features I'd never use, or just not very good.
 
-Think of it as a personal Milanote: moodboards, research boards, project planning, reference collections — where the spatial layout *is* the organisational structure.
-
-![React](https://img.shields.io/badge/React_19-61DAFB?style=flat&logo=react&logoColor=black)
-![TypeScript](https://img.shields.io/badge/TypeScript-3178C6?style=flat&logo=typescript&logoColor=white)
-![Vite](https://img.shields.io/badge/Vite_8-646CFF?style=flat&logo=vite&logoColor=white)
-
----
+So I built one. moody is a free, open-source, local-first infinite canvas. Drop images, notes, links, and files onto a board, arrange them however makes sense to you, and connect ideas with arrows. No accounts, no cloud, no server. Your data stays on your machine.
 
 ## Getting Started
 
@@ -178,6 +172,6 @@ src/
 
 ---
 
-## License
+## Licence
 
-Private project. Not licensed for redistribution.
+MIT
