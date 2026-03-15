@@ -3,6 +3,7 @@ import { useCanvasStore } from '../stores/canvasStore';
 import { addFileWithFolderSync } from '../db/filesystem';
 import { generateThumbnail, getImageDimensions } from '../utils/thumbnails';
 import { normalizeUrl, fetchOGMetadata, URL_REGEX } from '../utils/opengraph';
+import { isTauri } from '../utils/tauri';
 import type { ImageCard, TextCard, LinkCard, FileRecord } from '../types';
 
 export function useClipboard() {
@@ -74,6 +75,50 @@ export function useClipboard() {
           state.addObject(card);
           state.select(card.id);
           return;
+        }
+      }
+
+      // Tauri fallback: if DOM paste didn't yield an image, try the Tauri clipboard plugin
+      if (isTauri()) {
+        try {
+          const { readImage } = await import('@tauri-apps/plugin-clipboard-manager');
+          const clipImage = await readImage();
+          if (clipImage) {
+            e.preventDefault();
+            const rgba = await clipImage.rgba();
+            const blob = new Blob([rgba as BlobPart], { type: 'image/png' });
+
+            const fileId = crypto.randomUUID();
+            let thumbnailBlob: Blob | undefined;
+            try { thumbnailBlob = await generateThumbnail(blob, 800, 800); } catch { /* */ }
+
+            const fileRecord: FileRecord = {
+              id: fileId, blob, thumbnailBlob,
+              originalFilename: `pasted-image-${Date.now()}.png`,
+              mimeType: 'image/png', size: blob.size,
+            };
+            await addFileWithFolderSync(fileRecord, state.boardId);
+
+            let imgW = 200, imgH = 200;
+            try { const dims = await getImageDimensions(blob); imgW = dims.width; imgH = dims.height; } catch { /* */ }
+
+            const cam = state.camera;
+            const vcx = (window.innerWidth / 2) / cam.zoom - cam.x;
+            const vcy = (window.innerHeight / 2) / cam.zoom - cam.y;
+
+            const card: ImageCard = {
+              id: crypto.randomUUID(), boardId: state.boardId, type: 'image',
+              x: vcx - imgW / 2, y: vcy - imgH / 2, width: imgW, height: imgH,
+              zIndex: state.getMaxZIndex() + 1, locked: false, colour: '#ffffff',
+              fileId, originalFilename: fileRecord.originalFilename, caption: '', objectFit: 'cover',
+              layerId: state.activeLayerId,
+            };
+            state.addObject(card);
+            state.select(card.id);
+            return;
+          }
+        } catch {
+          // Tauri clipboard read failed, fall through to text handling
         }
       }
 

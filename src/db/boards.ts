@@ -5,7 +5,10 @@ import type { Board, Camera, CanvasObject } from '../types';
 
 const defaultCamera: Camera = { x: 0, y: 0, zoom: 1 };
 
-export async function createBoard(title: string, dirHandle?: FileSystemDirectoryHandle): Promise<Board> {
+export async function createBoard(
+  title: string,
+  dirHandleOrPath?: FileSystemDirectoryHandle | string,
+): Promise<Board> {
   const board: Board = {
     id: crypto.randomUUID(),
     title,
@@ -15,40 +18,42 @@ export async function createBoard(title: string, dirHandle?: FileSystemDirectory
     layers: [],
   };
 
-  if (dirHandle) {
+  if (dirHandleOrPath) {
     const handleId = crypto.randomUUID();
-    await saveDirHandle(handleId, dirHandle);
+    await saveDirHandle(handleId, dirHandleOrPath);
     board.dirHandleId = handleId;
-    board.folderName = dirHandle.name;
+    board.folderName = typeof dirHandleOrPath === 'string'
+      ? dirHandleOrPath.split(/[\\/]/).pop() || dirHandleOrPath
+      : dirHandleOrPath.name;
   }
 
   await db.boards.add(board);
   return board;
 }
 
-export async function createBoardFromFolder(handle: FileSystemDirectoryHandle): Promise<Board> {
-  const { board: boardData, objects, files } = await readBoardFromFolder(handle);
+export async function createBoardFromFolder(
+  handleOrPath: FileSystemDirectoryHandle | string,
+): Promise<Board> {
+  const { board: boardData, objects, files } = await readBoardFromFolder(handleOrPath);
 
-  // Assign a new ID so it doesn't collide with existing boards
   const boardId = boardData.id || crypto.randomUUID();
-
   const handleId = crypto.randomUUID();
-  await saveDirHandle(handleId, handle);
+  await saveDirHandle(handleId, handleOrPath);
 
   const board: Board = {
     ...boardData,
     id: boardId,
     dirHandleId: handleId,
-    folderName: handle.name,
+    folderName: typeof handleOrPath === 'string'
+      ? handleOrPath.split(/[\\/]/).pop() || handleOrPath
+      : handleOrPath.name,
     modifiedAt: Date.now(),
   };
 
-  // Store files in IndexedDB
   for (const file of files) {
     await addFile(file);
   }
 
-  // Store objects in IndexedDB (ensure boardId matches)
   const boardObjects = objects.map(o => ({ ...o, boardId }));
   await db.transaction('rw', [db.boards, db.objects], async () => {
     await db.boards.add(board);
@@ -73,12 +78,10 @@ export async function updateBoard(id: string, changes: Partial<Board>): Promise<
 }
 
 export async function deleteBoard(id: string): Promise<void> {
-  // Get board to check for dir handle before transaction
   const board = await db.boards.get(id);
   const dirHandleId = board?.dirHandleId;
 
   await db.transaction('rw', [db.boards, db.objects, db.files, db.dirHandles], async () => {
-    // Get all objects for this board to find referenced files
     const objects = await db.objects.where('boardId').equals(id).toArray();
     const fileIds = new Set<string>();
     for (const obj of objects) {
@@ -86,7 +89,6 @@ export async function deleteBoard(id: string): Promise<void> {
         fileIds.add(obj.fileId);
       }
     }
-    // Delete files, objects, board, and dir handle
     if (fileIds.size > 0) {
       await db.files.bulkDelete([...fileIds]);
     }
@@ -105,13 +107,11 @@ export async function duplicateBoard(id: string): Promise<Board | undefined> {
   const newBoardId = crypto.randomUUID();
   const objects = await db.objects.where('boardId').equals(id).toArray();
 
-  // Map old IDs to new IDs for internal references (arrows)
   const idMap = new Map<string, string>();
   for (const obj of objects) {
     idMap.set(obj.id, crypto.randomUUID());
   }
 
-  // Map old layer IDs to new layer IDs
   const layerIdMap = new Map<string, string>();
   for (const layer of original.layers ?? []) {
     layerIdMap.set(layer.id, crypto.randomUUID());

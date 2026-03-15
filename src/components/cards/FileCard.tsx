@@ -1,5 +1,6 @@
 import { useCallback } from 'react';
 import { getFile } from '../../db/objects';
+import { isTauri } from '../../utils/tauri';
 import type { FileCard as FileCardType } from '../../types';
 import { getFileIcon } from '../../utils/fileIcons';
 
@@ -11,7 +12,20 @@ export function FileCard({ obj }: Props) {
   const handleDoubleClick = useCallback(async (e: React.MouseEvent) => {
     e.stopPropagation();
     const file = await getFile(obj.fileId);
-    if (file) {
+    if (!file) return;
+
+    if (isTauri()) {
+      const { save } = await import('@tauri-apps/plugin-dialog');
+      const { writeFile } = await import('@tauri-apps/plugin-fs');
+      const savePath = await save({
+        defaultPath: file.originalFilename,
+        filters: [{ name: 'All Files', extensions: ['*'] }],
+      });
+      if (savePath) {
+        const buffer = new Uint8Array(await file.blob.arrayBuffer());
+        await writeFile(savePath, buffer);
+      }
+    } else {
       const url = URL.createObjectURL(file.blob);
       const a = document.createElement('a');
       a.href = url;

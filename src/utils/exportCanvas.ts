@@ -1,5 +1,6 @@
 import { getObjectsByBoard, getFile } from '../db/objects';
 import { boundingRect, nearestEdgePoint } from './geometry';
+import { isTauri } from './tauri';
 import type { CanvasObject, Arrow, ImageCard, TextCard, LinkCard, FileCard, GroupRegion, NoteCard, DrawingCard } from '../types';
 import { jsPDF } from 'jspdf';
 
@@ -56,25 +57,51 @@ export async function exportCanvas(
   // Export
   const filename = `${boardTitle || 'canvas'}.${format === 'jpg' ? 'jpg' : format === 'pdf' ? 'pdf' : 'png'}`;
 
-  if (format === 'pdf') {
-    const orientation = canvasWidth > canvasHeight ? 'landscape' : 'portrait';
-    const doc = new jsPDF({ orientation, unit: 'px', format: [canvasWidth, canvasHeight] });
-    const imgData = canvas.toDataURL('image/png');
-    doc.addImage(imgData, 'PNG', 0, 0, canvasWidth, canvasHeight);
-    doc.save(filename);
+  if (isTauri()) {
+    const { save } = await import('@tauri-apps/plugin-dialog');
+    const { writeFile } = await import('@tauri-apps/plugin-fs');
+
+    if (format === 'pdf') {
+      const orientation = canvasWidth > canvasHeight ? 'landscape' : 'portrait';
+      const doc = new jsPDF({ orientation, unit: 'px', format: [canvasWidth, canvasHeight] });
+      const imgData = canvas.toDataURL('image/png');
+      doc.addImage(imgData, 'PNG', 0, 0, canvasWidth, canvasHeight);
+      const pdfBytes = doc.output('arraybuffer');
+      const savePath = await save({ defaultPath: filename, filters: [{ name: 'PDF', extensions: ['pdf'] }] });
+      if (savePath) await writeFile(savePath, new Uint8Array(pdfBytes));
+    } else {
+      const mimeType = format === 'jpg' ? 'image/jpeg' : 'image/png';
+      const jpgQ = format === 'jpg' ? preset.jpgQuality : undefined;
+      const blob = await new Promise<Blob | null>((resolve) => canvas.toBlob(resolve, mimeType, jpgQ));
+      if (!blob) return;
+      const savePath = await save({ defaultPath: filename, filters: [{ name: format.toUpperCase(), extensions: [format] }] });
+      if (savePath) {
+        const buffer = new Uint8Array(await blob.arrayBuffer());
+        await writeFile(savePath, buffer);
+      }
+    }
   } else {
-    const mimeType = format === 'jpg' ? 'image/jpeg' : 'image/png';
-    const jpgQ = format === 'jpg' ? preset.jpgQuality : undefined;
-    const blob = await new Promise<Blob | null>((resolve) => canvas.toBlob(resolve, mimeType, jpgQ));
-    if (!blob) return;
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = filename;
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
+    // Browser fallback
+    if (format === 'pdf') {
+      const orientation = canvasWidth > canvasHeight ? 'landscape' : 'portrait';
+      const doc = new jsPDF({ orientation, unit: 'px', format: [canvasWidth, canvasHeight] });
+      const imgData = canvas.toDataURL('image/png');
+      doc.addImage(imgData, 'PNG', 0, 0, canvasWidth, canvasHeight);
+      doc.save(filename);
+    } else {
+      const mimeType = format === 'jpg' ? 'image/jpeg' : 'image/png';
+      const jpgQ = format === 'jpg' ? preset.jpgQuality : undefined;
+      const blob = await new Promise<Blob | null>((resolve) => canvas.toBlob(resolve, mimeType, jpgQ));
+      if (!blob) return;
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = filename;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    }
   }
 }
 

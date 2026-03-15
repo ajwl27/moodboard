@@ -2,7 +2,7 @@ import { useEffect } from 'react';
 import { useCanvasStore } from '../stores/canvasStore';
 import { addFileWithFolderSync } from '../db/filesystem';
 import { generateThumbnail, getImageDimensions } from '../utils/thumbnails';
-import { normalizeUrl, fetchOGMetadata, URL_REGEX } from '../utils/opengraph';
+import { normalizeUrl, fetchOGMetadata, URL_REGEX, fetchImage } from '../utils/opengraph';
 import type { ImageCard, FileCard, LinkCard, FileRecord } from '../types';
 
 const IMAGE_TYPES = ['image/png', 'image/jpeg', 'image/gif', 'image/webp', 'image/svg+xml'];
@@ -142,7 +142,7 @@ export function useDropzone(containerRef: React.RefObject<HTMLDivElement | null>
       if (isImageUrl(url)) {
         // Fetch image and create ImageCard
         try {
-          const res = await fetch(url);
+          const res = await fetchImage(url);
           const blob = await res.blob();
           if (!blob.type.startsWith('image/')) throw new Error('Not an image');
 

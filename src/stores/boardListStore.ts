@@ -32,15 +32,15 @@ export const useBoardListStore = create<BoardListState>((set) => ({
   },
 
   createBoardInFolder: async (title: string) => {
-    const handle = await pickDirectory();
-    const board = await boardsDb.createBoard(title, handle);
+    const handleOrPath = await pickDirectory();
+    const board = await boardsDb.createBoard(title, handleOrPath);
     set((s) => ({ boards: [board, ...s.boards] }));
     return board;
   },
 
   openFromFolder: async () => {
-    const handle = await pickDirectory();
-    const board = await boardsDb.createBoardFromFolder(handle);
+    const handleOrPath = await pickDirectory();
+    const board = await boardsDb.createBoardFromFolder(handleOrPath);
     set((s) => ({ boards: [board, ...s.boards] }));
     return board;
   },

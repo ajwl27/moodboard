@@ -1,3 +1,5 @@
+import { isTauri } from './tauri';
+
 // Match URLs with protocol, or www. prefix, or domain-like patterns (e.g. example.com/path)
 export const URL_REGEX = /^(https?:\/\/[^\s]+|www\.[^\s]+|[a-zA-Z0-9-]+\.[a-zA-Z]{2,}(\/[^\s]*)?)$/;
 
@@ -8,6 +10,19 @@ export interface OGMetadata {
   image?: string;
 }
 
+/** Portable fetch that uses Tauri HTTP plugin (no CORS) or browser fetch */
+async function portableFetch(url: string, options?: { signal?: AbortSignal }): Promise<Response> {
+  if (isTauri()) {
+    const { fetch: tauriFetch } = await import('@tauri-apps/plugin-http');
+    return tauriFetch(url, {
+      method: 'GET',
+      headers: { 'User-Agent': 'Mozilla/5.0 (compatible; SpatialOrganiser/1.0)' },
+      connectTimeout: 5000,
+    }) as unknown as Response;
+  }
+  return fetch(url, { mode: 'cors', ...options });
+}
+
 /**
  * Fetch OG metadata using microlink.io (free, CORS-friendly metadata extraction).
  * Falls back to direct fetch for CORS-permissive sites.
@@ -16,7 +31,7 @@ export async function fetchOGMetadata(url: string): Promise<OGMetadata> {
   // Try microlink.io API (free OG extraction service, CORS-friendly)
   try {
     const apiUrl = `https://api.microlink.io/?url=${encodeURIComponent(url)}`;
-    const res = await fetch(apiUrl);
+    const res = await portableFetch(apiUrl);
     if (res.ok) {
       const json = await res.json();
       if (json.status === 'success' && json.data) {
@@ -32,11 +47,11 @@ export async function fetchOGMetadata(url: string): Promise<OGMetadata> {
     // microlink failed, try direct fetch
   }
 
-  // Fallback: direct fetch (only works for CORS-permissive sites)
+  // Fallback: direct fetch (works in Tauri since no CORS; browser only for permissive sites)
   try {
     const controller = new AbortController();
     const timeout = setTimeout(() => controller.abort(), 5000);
-    const response = await fetch(url, { mode: 'cors', signal: controller.signal });
+    const response = await portableFetch(url, { signal: controller.signal });
     clearTimeout(timeout);
     const html = await response.text();
     const parser = new DOMParser();
@@ -83,4 +98,9 @@ export function getFaviconUrl(siteUrl: string, size: number = 32): string {
   } catch {
     return '';
   }
+}
+
+/** Portable image fetch — used by dropzone for fetching image URLs */
+export async function fetchImage(url: string): Promise<Response> {
+  return portableFetch(url);
 }
