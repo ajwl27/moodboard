@@ -28,7 +28,7 @@ export async function bulkPutObjects(objects: CanvasObject[]): Promise<void> {
 // --- File operations ---
 
 export async function addFile(file: FileRecord): Promise<void> {
-  await db.files.add(file);
+  await db.files.put(file);
 }
 
 export async function getFile(id: string): Promise<FileRecord | undefined> {

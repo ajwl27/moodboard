@@ -3,7 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { useCanvasStore } from '../../stores/canvasStore';
 import { getBoard, updateBoard } from '../../db/boards';
 import { getObjectsByBoard, updateFile } from '../../db/objects';
-import { getDirHandle } from '../../db/filesystem';
+import { getDirHandle, syncBoardFromFolder } from '../../db/filesystem';
 import { generateBoardThumbnail } from '../../utils/exportCanvas';
 import { useCamera } from '../../hooks/useCamera';
 import { useSelection } from '../../hooks/useSelection';
@@ -47,27 +47,35 @@ export function BoardView() {
     gridEnabled, gridSize, layers, layersPanelOpen, loadBoard, unloadBoard,
   } = useCanvasStore();
 
-  // Load board data
+  // Load board data — for folder-backed boards, re-read from the folder
+  // every time so the folder is always the source of truth.
   useEffect(() => {
     if (!id) return;
     let cancelled = false;
     (async () => {
-      const board = await getBoard(id);
+      let board = await getBoard(id);
       if (cancelled || !board) {
         if (!board) navigate('/');
         return;
       }
-      const objs = await getObjectsByBoard(id);
-      loadBoard(id, objs, board.camera, board.layers);
 
-      // Re-request folder permission if board has a dir handle
+      // If the board is backed by a folder, sync from it first
       if (board.dirHandleId) {
         const handle = await getDirHandle(board.dirHandleId);
-        if (!handle) {
+        if (handle) {
+          const synced = await syncBoardFromFolder(id, handle);
+          if (synced) {
+            board = synced.board;
+          }
+        } else {
           setFolderSyncInactive(true);
           setTimeout(() => setFolderSyncInactive(false), 5000);
         }
       }
+
+      if (cancelled) return;
+      const objs = await getObjectsByBoard(id);
+      loadBoard(id, objs, board.camera, board.layers);
     })();
     return () => {
       cancelled = true;

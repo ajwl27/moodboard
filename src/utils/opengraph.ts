@@ -16,7 +16,7 @@ async function portableFetch(url: string, options?: { signal?: AbortSignal }): P
     const { fetch: tauriFetch } = await import('@tauri-apps/plugin-http');
     return tauriFetch(url, {
       method: 'GET',
-      headers: { 'User-Agent': 'Mozilla/5.0 (compatible; SpatialOrganiser/1.0)' },
+      headers: { 'User-Agent': 'Mozilla/5.0 (compatible; moody/1.0)' },
       connectTimeout: 5000,
     }) as unknown as Response;
   }

@@ -1,5 +1,5 @@
 import { db } from './schema';
-import { addFile, getFile } from './objects';
+import { getFile } from './objects';
 import { getBoard } from './boards';
 import { isTauri } from '../utils/tauri';
 import type { Board, CanvasObject, FileRecord } from '../types';
@@ -52,6 +52,13 @@ export async function getDirHandle(id: string): Promise<FileSystemDirectoryHandl
 // Write board data to folder
 // ============================================================
 
+/** Fields that are local to this IndexedDB instance and should not be written to folder JSON */
+function stripLocalFields(board: Board): Omit<Board, 'thumbnail' | 'dirHandleId' | 'folderName'> {
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const { thumbnail, dirHandleId, folderName, ...portable } = board;
+  return portable;
+}
+
 export async function writeBoardToFolder(
   handleOrPath: FileSystemDirectoryHandle | string,
   board: Board,
@@ -72,18 +79,24 @@ export async function writeBoardToFolder(
     }
   }
 
-  const { thumbnail, ...boardData } = board;
-  void thumbnail;
+  const boardData = stripLocalFields(board);
+
+  // Strip boardId from objects before writing (it's implicit — they belong to this board)
+  const portableObjects = objects.map(o => {
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const { boardId, ...rest } = o;
+    return rest;
+  });
 
   if (typeof handleOrPath === 'string') {
     const { writeTextFile } = await import('@tauri-apps/plugin-fs');
     const { join } = await import('@tauri-apps/api/path');
     await writeTextFile(await join(handleOrPath, 'board.json'), JSON.stringify(boardData, null, 2));
-    await writeTextFile(await join(handleOrPath, 'objects.json'), JSON.stringify(objects, null, 2));
+    await writeTextFile(await join(handleOrPath, 'objects.json'), JSON.stringify(portableObjects, null, 2));
     await writeTextFile(await join(handleOrPath, 'files.json'), JSON.stringify(fileMetas, null, 2));
   } else {
     await writeJsonFile(handleOrPath, 'board.json', boardData);
-    await writeJsonFile(handleOrPath, 'objects.json', objects);
+    await writeJsonFile(handleOrPath, 'objects.json', portableObjects);
     await writeJsonFile(handleOrPath, 'files.json', fileMetas);
   }
 }
@@ -152,25 +165,33 @@ export async function readBoardFromFolder(
       for (const [fileId, meta] of Object.entries(fileMetas)) {
         try {
           const assetPath = await join(assetsDir, `${fileId}.bin`);
-          if (!(await exists(assetPath))) continue;
-          const data = await readFile(assetPath);
+          if (!(await exists(assetPath))) {
+            console.warn('[readBoardFromFolder] Asset file missing:', assetPath);
+            continue;
+          }
+          const raw = await readFile(assetPath);
+          // Ensure proper Uint8Array — Tauri IPC may return a plain number array
+          const data = raw instanceof Uint8Array ? raw : new Uint8Array(raw);
           const blob = new Blob([data], { type: meta.mimeType });
 
           let thumbnailBlob: Blob | undefined;
           try {
             const thumbPath = await join(assetsDir, `${fileId}.thumb.bin`);
             if (await exists(thumbPath)) {
-              const thumbData = await readFile(thumbPath);
+              const rawThumb = await readFile(thumbPath);
+              const thumbData = rawThumb instanceof Uint8Array ? rawThumb : new Uint8Array(rawThumb);
               thumbnailBlob = new Blob([thumbData], { type: meta.mimeType });
             }
-          } catch { /* no thumbnail */ }
+          } catch (e) { console.warn('[readBoardFromFolder] Failed to read thumbnail for', fileId, e); }
 
           files.push({
             id: fileId, blob, thumbnailBlob,
             originalFilename: meta.originalFilename, mimeType: meta.mimeType, size: meta.size,
           });
-        } catch { /* skip missing asset */ }
+        } catch (e) { console.warn('[readBoardFromFolder] Failed to read asset', fileId, e); }
       }
+    } else {
+      console.warn('[readBoardFromFolder] No assets directory at:', assetsDir);
     }
 
     return { board: boardData, objects, files };
@@ -210,6 +231,55 @@ export async function readBoardFromFolder(
 }
 
 // ============================================================
+// Sync a folder-backed board: re-read folder → update IndexedDB
+// Called every time a folder-backed board is opened so the folder
+// is always the source of truth.
+// ============================================================
+
+export async function syncBoardFromFolder(
+  boardId: string,
+  handleOrPath: FileSystemDirectoryHandle | string,
+): Promise<{ board: Board; objects: CanvasObject[] } | null> {
+  try {
+    const { board: folderBoard, objects: folderObjects, files } = await readBoardFromFolder(handleOrPath);
+
+    // Upsert all file blobs into IndexedDB
+    for (const file of files) {
+      await db.files.put(file);
+    }
+
+    // Rebuild objects with correct boardId
+    const boardObjects = folderObjects.map(o => ({ ...o, boardId }));
+
+    // Get the existing board so we preserve dirHandleId / folderName / thumbnail
+    const existing = await db.boards.get(boardId);
+
+    const updatedBoard: Board = {
+      ...folderBoard,
+      id: boardId,
+      dirHandleId: existing?.dirHandleId,
+      folderName: existing?.folderName,
+      thumbnail: existing?.thumbnail,
+      modifiedAt: Date.now(),
+    };
+
+    await db.transaction('rw', [db.boards, db.objects], async () => {
+      await db.boards.put(updatedBoard);
+      // Replace all objects for this board with folder contents
+      await db.objects.where('boardId').equals(boardId).delete();
+      if (boardObjects.length > 0) {
+        await db.objects.bulkPut(boardObjects);
+      }
+    });
+
+    return { board: updatedBoard, objects: boardObjects };
+  } catch (e) {
+    console.warn('[syncBoardFromFolder] Failed to sync from folder, using IndexedDB data:', e);
+    return null;
+  }
+}
+
+// ============================================================
 // Delete asset from folder
 // ============================================================
 
@@ -241,7 +311,7 @@ export async function deleteAssetFromFolder(
 // ============================================================
 
 export async function addFileWithFolderSync(fileRecord: FileRecord, boardId?: string | null): Promise<void> {
-  await addFile(fileRecord);
+  await db.files.put(fileRecord);
   if (!boardId) return;
 
   const board = await getBoard(boardId);
@@ -250,11 +320,8 @@ export async function addFileWithFolderSync(fileRecord: FileRecord, boardId?: st
   const handle = await getDirHandle(board.dirHandleId);
   if (!handle) return;
 
-  try {
-    await writeAssetToFolder(handle, fileRecord);
-  } catch {
-    // Folder sync failed silently — IndexedDB save already succeeded
-  }
+  // Write asset to folder immediately — don't swallow errors silently
+  await writeAssetToFolder(handle, fileRecord);
 }
 
 // ============================================================

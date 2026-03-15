@@ -1,6 +1,5 @@
 import { db } from './schema';
 import { saveDirHandle, readBoardFromFolder } from './filesystem';
-import { addFile } from './objects';
 import type { Board, Camera, CanvasObject } from '../types';
 
 const defaultCamera: Camera = { x: 0, y: 0, zoom: 1 };
@@ -31,13 +30,23 @@ export async function createBoard(
   return board;
 }
 
+/**
+ * Open a board from a folder. If a board with the same ID already exists in
+ * IndexedDB (e.g. previously opened from this folder), it is updated in-place
+ * rather than duplicated. The folder is always the source of truth.
+ */
 export async function createBoardFromFolder(
   handleOrPath: FileSystemDirectoryHandle | string,
 ): Promise<Board> {
   const { board: boardData, objects, files } = await readBoardFromFolder(handleOrPath);
 
   const boardId = boardData.id || crypto.randomUUID();
-  const handleId = crypto.randomUUID();
+
+  // Check if this board already exists in IndexedDB (re-opening same folder)
+  const existing = await db.boards.get(boardId);
+
+  // Reuse existing dir handle ID, or create a new one
+  const handleId = existing?.dirHandleId || crypto.randomUUID();
   await saveDirHandle(handleId, handleOrPath);
 
   const board: Board = {
@@ -47,18 +56,25 @@ export async function createBoardFromFolder(
     folderName: typeof handleOrPath === 'string'
       ? handleOrPath.split(/[\\/]/).pop() || handleOrPath
       : handleOrPath.name,
+    thumbnail: existing?.thumbnail, // preserve cached thumbnail
     modifiedAt: Date.now(),
   };
 
+  // Upsert all file blobs into IndexedDB
   for (const file of files) {
-    await addFile(file);
+    await db.files.put(file);
   }
 
+  // Rebuild objects with the correct boardId
   const boardObjects = objects.map(o => ({ ...o, boardId }));
+
   await db.transaction('rw', [db.boards, db.objects], async () => {
-    await db.boards.add(board);
+    // Upsert the board
+    await db.boards.put(board);
+    // Replace all objects for this board with the folder's contents
+    await db.objects.where('boardId').equals(boardId).delete();
     if (boardObjects.length > 0) {
-      await db.objects.bulkAdd(boardObjects);
+      await db.objects.bulkPut(boardObjects);
     }
   });
 

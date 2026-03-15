@@ -29,7 +29,8 @@
       "Bash(export:*)",
       "Bash(npm install:*)",
       "Bash(cargo check:*)",
-      "Read(//tmp/**)"
+      "Read(//tmp/**)",
+      "Bash(cat:*)"
     ]
   }
 }

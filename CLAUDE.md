@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-Spatial Project Organiser — a single-user, local-first, browser-based infinite canvas app for organising creative projects (moodboards, research boards, project planning). No server, no accounts, no collaboration. All data persists locally on disk.
+moody — a single-user, local-first infinite canvas app for organising creative projects (moodboards, research boards, project planning). No server, no accounts, no collaboration. All data persists locally on disk.
 
 The full specification is in `BUILD_INSTRUCTIONS.md`.
 

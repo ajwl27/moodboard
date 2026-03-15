@@ -1,6 +1,6 @@
-# Spatial Project Organiser
+# moody
 
-A local-first, browser-based infinite canvas for organising creative projects. Drop images, notes, links, and files onto a spatial canvas, arrange them meaningfully, and connect ideas with arrows. No accounts, no cloud, no server — your data stays on your machine.
+A local-first infinite canvas for organising creative projects. Drop images, notes, links, and files onto a spatial canvas, arrange them meaningfully, and connect ideas with arrows. No accounts, no cloud, no server — your data stays on your machine.
 
 Think of it as a personal Milanote: moodboards, research boards, project planning, reference collections — where the spatial layout *is* the organisational structure.
 

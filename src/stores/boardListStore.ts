@@ -41,7 +41,16 @@ export const useBoardListStore = create<BoardListState>((set) => ({
   openFromFolder: async () => {
     const handleOrPath = await pickDirectory();
     const board = await boardsDb.createBoardFromFolder(handleOrPath);
-    set((s) => ({ boards: [board, ...s.boards] }));
+    // Update the board list: replace if already present, otherwise prepend
+    set((s) => {
+      const idx = s.boards.findIndex((b) => b.id === board.id);
+      if (idx >= 0) {
+        const updated = [...s.boards];
+        updated[idx] = board;
+        return { boards: updated };
+      }
+      return { boards: [board, ...s.boards] };
+    });
     return board;
   },
 

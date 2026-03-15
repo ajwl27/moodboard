@@ -61,8 +61,8 @@ export function useAutoSave() {
                   if (file) await writeAssetToFolder(handle, file);
                 }
               }
-            } catch {
-              // Folder sync failed silently — IndexedDB save already succeeded
+            } catch (e) {
+              console.warn('[autoSave] Folder sync failed:', e);
             }
           }
         }

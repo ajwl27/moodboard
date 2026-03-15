@@ -31,10 +31,14 @@ export function ImageCard({ obj, selected }: Props) {
     let url: string | null = null;
     (async () => {
       const file = await getFile(obj.fileId);
-      if (file) {
-        url = URL.createObjectURL(file.thumbnailBlob || file.blob);
-        setThumbUrl(url);
+      if (!file) {
+        console.warn('[ImageCard] No file record in IndexedDB for fileId:', obj.fileId);
+        return;
       }
+      const blob = file.thumbnailBlob || file.blob;
+      console.log('[ImageCard] Loaded blob for', obj.fileId, '— type:', blob.type, 'size:', blob.size);
+      url = URL.createObjectURL(blob);
+      setThumbUrl(url);
     })();
     return () => { if (url) URL.revokeObjectURL(url); };
   }, [obj.fileId]);
