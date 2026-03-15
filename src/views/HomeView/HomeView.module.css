@@ -1,0 +1,140 @@
+.container {
+  width: 100%;
+  height: 100%;
+  overflow-y: auto;
+  background: var(--bg);
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 28px 48px;
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  backdrop-filter: blur(12px);
+  background: rgba(255, 255, 255, 0.85);
+}
+
+.titleGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.title {
+  font-size: 24px;
+  font-weight: 700;
+  color: var(--text);
+  letter-spacing: -0.5px;
+}
+
+.subtitle {
+  font-size: 13px;
+  color: var(--text-tertiary);
+  font-weight: 400;
+}
+
+.createBtn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 20px;
+  background: var(--accent);
+  color: white;
+  border-radius: var(--radius);
+  font-weight: 600;
+  font-size: 14px;
+  transition: all var(--transition);
+  box-shadow: 0 1px 3px rgba(99, 102, 241, 0.3);
+}
+
+.createBtn:hover {
+  background: var(--accent-hover);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(99, 102, 241, 0.35);
+}
+
+.createBtn:active {
+  transform: translateY(0);
+}
+
+.createIcon {
+  width: 18px;
+  height: 18px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 18px;
+  font-weight: 300;
+  line-height: 1;
+}
+
+.btnGroup {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.folderBtn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 10px 16px;
+  background: var(--surface);
+  color: var(--text);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  font-weight: 500;
+  font-size: 13px;
+  transition: all var(--transition);
+  cursor: pointer;
+}
+
+.folderBtn:hover {
+  background: var(--accent-light);
+  color: var(--accent);
+  border-color: var(--accent);
+  transform: translateY(-1px);
+  box-shadow: 0 2px 8px rgba(99, 102, 241, 0.15);
+}
+
+.folderBtn:active {
+  transform: translateY(0);
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: 24px;
+  padding: 36px 48px 60px;
+}
+
+.empty {
+  grid-column: 1 / -1;
+  text-align: center;
+  padding: 100px 20px;
+  color: var(--text-secondary);
+}
+
+.emptyIcon {
+  font-size: 48px;
+  margin-bottom: 16px;
+  opacity: 0.4;
+  display: block;
+}
+
+.emptyTitle {
+  font-size: 18px;
+  font-weight: 600;
+  margin-bottom: 6px;
+  color: var(--text);
+}
+
+.emptyDesc {
+  font-size: 14px;
+  color: var(--text-tertiary);
+}

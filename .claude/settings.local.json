@@ -1,0 +1,20 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(cd /c/Users/orca/project_organiser && npm create vite@latest . -- --template react-ts 2>&1)",
+      "Bash(cd /c/Users/orca/project_organiser && echo \"y\" | npm create vite@latest . -- --template react-ts 2>&1)",
+      "Bash(cd /c/Users/orca/project_organiser && npx --yes create-vite@latest temp-init --template react-ts 2>&1)",
+      "Bash(cd /c/Users/orca/project_organiser && npm install 2>&1)",
+      "Bash(cd /c/Users/orca/project_organiser && npm install zustand dexie react-router-dom 2>&1)",
+      "Bash(cd /c/Users/orca/project_organiser && rm -rf src/assets)",
+      "Bash(cd /c/Users/orca/project_organiser && npx tsc --noEmit 2>&1 | head -80)",
+      "Bash(cd /c/Users/orca/project_organiser && npm run build 2>&1 | tail -30)",
+      "Bash(cd /c/Users/orca/project_organiser && npx tsc --noEmit 2>&1)",
+      "Bash(cd /c/Users/orca/project_organiser && npm run build 2>&1)",
+      "Bash(cd /c/Users/orca/project_organiser && timeout 8 npx vite --host 2>&1 || true)",
+      "Bash(curl -s \"https://jsonlink.io/api/extract?url=https://google.com\" 2>&1 | head -20)",
+      "Bash(curl -s \"https://api.microlink.io/?url=https://google.com\" 2>&1 | head -5)",
+      "Bash(cd /c/Users/orca/project_organiser && npm install jspdf)"
+    ]
+  }
+}

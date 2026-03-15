@@ -1,0 +1,61 @@
+.container {
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  position: relative;
+  background: var(--bg-canvas);
+  cursor: default;
+}
+
+.container.panning {
+  cursor: grab;
+}
+
+.container.panning:active {
+  cursor: grabbing;
+}
+
+.container.arrowMode {
+  cursor: crosshair;
+}
+
+.gridBackground {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  opacity: 0.55;
+}
+
+.gridBackground.gridDots {
+  background-image: radial-gradient(circle, #7c8ba3 1.2px, transparent 1.2px);
+}
+
+.gridBackground.gridLines {
+  background-image:
+    linear-gradient(to right, #cbd5e1 1px, transparent 1px),
+    linear-gradient(to bottom, #cbd5e1 1px, transparent 1px);
+}
+
+.canvasLayer {
+  position: absolute;
+  top: 0;
+  left: 0;
+  transform-origin: 0 0;
+  will-change: transform;
+}
+
+.svgOverlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  transform-origin: 0 0;
+  will-change: transform;
+  pointer-events: none;
+  overflow: visible;
+}
+
+.svgOverlay path,
+.svgOverlay line,
+.svgOverlay circle {
+  pointer-events: auto;
+}

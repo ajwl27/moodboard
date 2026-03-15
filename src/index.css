@@ -1,0 +1,122 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+
+:root {
+  --font: 'Inter', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  --mono: ui-monospace, 'SF Mono', Consolas, monospace;
+
+  --bg: #f8f9fb;
+  --bg-canvas: #eef0f4;
+  --surface: #ffffff;
+  --surface-hover: #f8f9fb;
+  --text: #0f172a;
+  --text-secondary: #64748b;
+  --text-tertiary: #94a3b8;
+  --border: #e2e8f0;
+  --border-light: #f1f5f9;
+
+  --accent: #6366f1;
+  --accent-hover: #4f46e5;
+  --accent-light: rgba(99, 102, 241, 0.08);
+  --accent-medium: rgba(99, 102, 241, 0.15);
+  --accent-glow: rgba(99, 102, 241, 0.25);
+
+  --danger: #ef4444;
+  --danger-hover: #dc2626;
+  --danger-light: rgba(239, 68, 68, 0.08);
+
+  --success: #22c55e;
+  --warning: #f59e0b;
+
+  --shadow-xs: 0 1px 2px rgba(0, 0, 0, 0.04);
+  --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.06), 0 1px 2px rgba(0, 0, 0, 0.04);
+  --shadow-md: 0 4px 16px rgba(0, 0, 0, 0.08), 0 1px 4px rgba(0, 0, 0, 0.04);
+  --shadow-lg: 0 12px 40px rgba(0, 0, 0, 0.1), 0 2px 8px rgba(0, 0, 0, 0.04);
+  --shadow-xl: 0 20px 60px rgba(0, 0, 0, 0.12), 0 4px 12px rgba(0, 0, 0, 0.06);
+  --shadow-card: 0 1px 3px rgba(0, 0, 0, 0.05), 0 0 0 1px rgba(0, 0, 0, 0.03);
+  --shadow-card-hover: 0 8px 30px rgba(0, 0, 0, 0.08), 0 0 0 1px rgba(0, 0, 0, 0.03);
+
+  --radius: 8px;
+  --radius-sm: 6px;
+  --radius-lg: 12px;
+  --radius-xl: 16px;
+
+  --transition: 0.15s cubic-bezier(0.4, 0, 0.2, 1);
+  --transition-slow: 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+
+  font-family: var(--font);
+  font-size: 14px;
+  line-height: 1.5;
+  color: var(--text);
+  background: var(--bg);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  overflow: hidden;
+}
+
+#root {
+  width: 100vw;
+  height: 100vh;
+  overflow: hidden;
+}
+
+button {
+  font-family: var(--font);
+  font-size: 13px;
+  cursor: pointer;
+  border: none;
+  background: none;
+  color: inherit;
+  transition: all var(--transition);
+}
+
+input, textarea, select {
+  font-family: var(--font);
+  font-size: 13px;
+  color: var(--text);
+  transition: border-color var(--transition), box-shadow var(--transition);
+}
+
+input:focus, textarea:focus, select:focus {
+  outline: none;
+  border-color: var(--accent) !important;
+  box-shadow: 0 0 0 3px var(--accent-light);
+}
+
+a {
+  color: var(--accent);
+  text-decoration: none;
+}
+
+a:hover {
+  text-decoration: underline;
+}
+
+::selection {
+  background: var(--accent-medium);
+}
+
+/* Scrollbar styling */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: var(--text-tertiary);
+  border-radius: 3px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--text-secondary);
+}
