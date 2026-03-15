@@ -23,12 +23,12 @@ export function ContextMenu({ x, y, targetElement, onClose }: Props) {
     position: 'fixed',
     left: x,
     top: y,
-    background: 'rgba(255, 255, 255, 0.92)',
-    backdropFilter: 'blur(20px) saturate(1.4)',
-    WebkitBackdropFilter: 'blur(20px) saturate(1.4)',
-    border: '1px solid rgba(255, 255, 255, 0.6)',
-    borderRadius: 12,
-    boxShadow: '0 8px 32px rgba(0, 0, 0, 0.1), 0 0 0 1px rgba(0, 0, 0, 0.04)',
+    background: 'rgba(250, 248, 245, 0.95)',
+    backdropFilter: 'blur(12px)',
+    WebkitBackdropFilter: 'blur(12px)',
+    border: '1px solid rgba(0, 0, 0, 0.06)',
+    borderRadius: 10,
+    boxShadow: '0 8px 32px rgba(0, 0, 0, 0.08)',
     padding: 6,
     minWidth: 190,
     zIndex: 99999,
@@ -107,9 +107,9 @@ export function ContextMenu({ x, y, targetElement, onClose }: Props) {
               <div
                 style={{
                   position: 'absolute', left: '100%', top: 0, marginLeft: 4,
-                  background: 'rgba(255, 255, 255, 0.92)', backdropFilter: 'blur(20px)',
-                  border: '1px solid rgba(255,255,255,0.6)', borderRadius: 10,
-                  boxShadow: '0 4px 20px rgba(0,0,0,0.1)', padding: 4, minWidth: 140,
+                  background: 'rgba(250, 248, 245, 0.95)', backdropFilter: 'blur(12px)',
+                  border: '1px solid rgba(0,0,0,0.06)', borderRadius: 8,
+                  boxShadow: '0 4px 20px rgba(0,0,0,0.08)', padding: 4, minWidth: 140,
                   zIndex: 100000,
                 }}
                 onMouseEnter={() => setShowLayerSubmenu(true)}
@@ -117,7 +117,7 @@ export function ContextMenu({ x, y, targetElement, onClose }: Props) {
               >
                 <button style={item} onClick={() => { store.moveSelectedToLayer(null); onClose(); }}
                   onMouseEnter={(e) => hover(e)} onMouseLeave={(e) => unhover(e)}>
-                  <div style={{ width: 10, height: 10, borderRadius: 3, background: '#6366f1', flexShrink: 0 }} />
+                  <div style={{ width: 10, height: 10, borderRadius: 3, background: '#5B7B9A', flexShrink: 0 }} />
                   Default
                 </button>
                 {layers.map((l) => (

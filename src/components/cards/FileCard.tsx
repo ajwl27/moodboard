@@ -37,7 +37,7 @@ export function FileCard({ obj }: Props) {
     >
       <div style={{
         width: 40, height: 40, borderRadius: 10,
-        background: '#f1f5f9',
+        background: '#EBE7E1',
         display: 'flex', alignItems: 'center', justifyContent: 'center',
         fontSize: 20, flexShrink: 0,
       }}>

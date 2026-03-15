@@ -10,13 +10,12 @@
   align-items: center;
   justify-content: space-between;
   padding: 28px 48px;
-  background: var(--surface);
+  background: rgba(250, 248, 245, 0.85);
   border-bottom: 1px solid var(--border);
   position: sticky;
   top: 0;
   z-index: 10;
   backdrop-filter: blur(12px);
-  background: rgba(255, 255, 255, 0.85);
 }
 
 .titleGroup {
@@ -44,18 +43,18 @@
   gap: 8px;
   padding: 10px 20px;
   background: var(--accent);
-  color: white;
+  color: #faf8f5;
   border-radius: var(--radius);
   font-weight: 600;
   font-size: 14px;
   transition: all var(--transition);
-  box-shadow: 0 1px 3px rgba(99, 102, 241, 0.3);
+  box-shadow: 0 1px 3px rgba(91, 123, 154, 0.25);
 }
 
 .createBtn:hover {
   background: var(--accent-hover);
   transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(99, 102, 241, 0.35);
+  box-shadow: 0 4px 12px rgba(91, 123, 154, 0.3);
 }
 
 .createBtn:active {
@@ -99,7 +98,7 @@
   color: var(--accent);
   border-color: var(--accent);
   transform: translateY(-1px);
-  box-shadow: 0 2px 8px rgba(99, 102, 241, 0.15);
+  box-shadow: 0 2px 8px rgba(91, 123, 154, 0.12);
 }
 
 .folderBtn:active {
@@ -123,7 +122,7 @@
 .emptyIcon {
   font-size: 48px;
   margin-bottom: 16px;
-  opacity: 0.4;
+  opacity: 0.35;
   display: block;
 }
 

@@ -88,12 +88,12 @@ export function LayersPanel() {
     top: 72,
     width: 240,
     maxHeight: 'calc(100vh - 96px)',
-    background: 'rgba(255, 255, 255, 0.88)',
-    backdropFilter: 'blur(16px) saturate(1.4)',
-    WebkitBackdropFilter: 'blur(16px) saturate(1.4)',
-    borderRadius: 14,
-    border: '1px solid rgba(255, 255, 255, 0.6)',
-    boxShadow: '0 2px 12px rgba(0, 0, 0, 0.06), 0 0 0 1px rgba(0, 0, 0, 0.03)',
+    background: 'rgba(250, 248, 245, 0.92)',
+    backdropFilter: 'blur(12px)',
+    WebkitBackdropFilter: 'blur(12px)',
+    borderRadius: 12,
+    border: '1px solid rgba(0, 0, 0, 0.06)',
+    boxShadow: '0 2px 12px rgba(0, 0, 0, 0.05)',
     zIndex: 1001,
     display: 'flex',
     flexDirection: 'column',
@@ -148,7 +148,7 @@ export function LayersPanel() {
             style={iconBtn}
             title="Close"
             onClick={() => useCanvasStore.getState().toggleLayersPanel()}
-            onMouseEnter={(e) => { e.currentTarget.style.background = 'rgba(239,68,68,0.1)'; e.currentTarget.style.color = '#ef4444'; }}
+            onMouseEnter={(e) => { e.currentTarget.style.background = 'var(--danger-light)'; e.currentTarget.style.color = 'var(--danger)'; }}
             onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = 'var(--text-secondary)'; }}
           >
             <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
@@ -238,14 +238,14 @@ export function LayersPanel() {
             gap: 6,
             padding: '7px 10px',
             cursor: 'pointer',
-            background: activeLayerId === null ? hexToRgba('#6366f1', 0.12) : 'transparent',
-            borderLeft: activeLayerId === null ? '3px solid #6366f1' : '3px solid transparent',
+            background: activeLayerId === null ? hexToRgba('#5B7B9A', 0.12) : 'transparent',
+            borderLeft: activeLayerId === null ? '3px solid #5B7B9A' : '3px solid transparent',
             transition: 'all 0.12s',
           }}
-          onMouseEnter={(e) => { if (activeLayerId !== null) e.currentTarget.style.background = hexToRgba('#6366f1', 0.06); }}
+          onMouseEnter={(e) => { if (activeLayerId !== null) e.currentTarget.style.background = hexToRgba('#5B7B9A', 0.06); }}
           onMouseLeave={(e) => { if (activeLayerId !== null) e.currentTarget.style.background = 'transparent'; }}
         >
-          <div style={{ width: 12, height: 12, borderRadius: 4, background: '#6366f1', flexShrink: 0 }} />
+          <div style={{ width: 12, height: 12, borderRadius: 4, background: '#5B7B9A', flexShrink: 0 }} />
           <span style={{ fontSize: 12, fontWeight: 500, color: 'var(--text-secondary)', flex: 1 }}>Default</span>
           <span style={{ fontSize: 10, color: 'var(--text-tertiary)', fontVariantNumeric: 'tabular-nums' }}>
             {getObjectCount(null)}
@@ -383,7 +383,7 @@ function LayerRow({
           onClick={(e) => e.stopPropagation()}
           style={{
             flex: 1, minWidth: 0, padding: '2px 5px', borderRadius: 5,
-            border: `1.5px solid ${layer.colour}`, fontSize: 11, background: 'white',
+            border: `1.5px solid ${layer.colour}`, fontSize: 11, background: 'var(--surface)',
             fontWeight: 500, outline: 'none',
           }}
         />
@@ -422,10 +422,10 @@ function LayerRow({
             position: 'absolute',
             right: 4,
             top: '100%',
-            background: 'rgba(255,255,255,0.95)',
+            background: 'rgba(250, 248, 245, 0.95)',
             backdropFilter: 'blur(12px)',
             borderRadius: 10,
-            boxShadow: '0 4px 20px rgba(0,0,0,0.12), 0 0 0 1px rgba(0,0,0,0.04)',
+            boxShadow: '0 4px 20px rgba(0,0,0,0.08), 0 0 0 1px rgba(0,0,0,0.04)',
             padding: 4,
             minWidth: 150,
             zIndex: 10,
@@ -479,10 +479,10 @@ function MenuButton({ label, onClick, danger }: { label: string; onClick: () => 
         display: 'block', width: '100%', textAlign: 'left',
         padding: '6px 10px', border: 'none', background: 'none',
         fontSize: 12, fontWeight: 450, cursor: 'pointer', borderRadius: 6,
-        color: danger ? '#ef4444' : 'var(--text)',
+        color: danger ? 'var(--danger)' : 'var(--text)',
         transition: 'background 0.1s',
       }}
-      onMouseEnter={(e) => { e.currentTarget.style.background = danger ? 'rgba(239,68,68,0.08)' : 'var(--accent-light)'; }}
+      onMouseEnter={(e) => { e.currentTarget.style.background = danger ? 'var(--danger-light)' : 'var(--accent-light)'; }}
       onMouseLeave={(e) => { e.currentTarget.style.background = 'none'; }}
     >
       {label}

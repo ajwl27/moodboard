@@ -16,7 +16,7 @@
 
 .thumbnail {
   height: 160px;
-  background: linear-gradient(135deg, #e0e7ff 0%, #ede9fe 50%, #fce7f3 100%);
+  background: linear-gradient(135deg, #e8e0d4 0%, #e2dbd1 50%, #ddd5ca 100%);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -27,7 +27,7 @@
 }
 
 .thumbnailIcon {
-  opacity: 0.3;
+  opacity: 0.25;
 }
 
 .thumbnail img {
@@ -91,7 +91,7 @@
 
 .contextMenu {
   position: fixed;
-  background: var(--surface);
+  background: rgba(250, 248, 245, 0.95);
   border: 1px solid var(--border);
   border-radius: var(--radius-lg);
   box-shadow: var(--shadow-xl);
@@ -99,7 +99,6 @@
   min-width: 180px;
   z-index: 9999;
   backdrop-filter: blur(20px);
-  background: rgba(255, 255, 255, 0.95);
   animation: menuIn 0.12s ease-out;
 }
 

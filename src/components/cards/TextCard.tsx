@@ -45,11 +45,12 @@ export function TextCard({ obj }: Props) {
       style={{
         width: '100%',
         height: '100%',
-        padding: 14,
+        padding: '6px 10px',
         fontSize: obj.fontSize,
         lineHeight: 1.6,
         overflow: 'hidden',
-        color: 'var(--text)',
+        color: '#2C2825',
+        borderRadius: 6,
       }}
     >
       {isEditing ? (

@@ -148,7 +148,7 @@ export function CropModal({ fileId, initialCropX, initialCropY, initialCropWidth
     width: 14,
     height: 14,
     background: '#fff',
-    border: '2px solid var(--accent, #2563eb)',
+    border: '2px solid var(--accent, #5B7B9A)',
     borderRadius: 3,
     cursor,
     zIndex: 2,
@@ -239,7 +239,7 @@ export function CropModal({ fileId, initialCropX, initialCropY, initialCropWidth
         </button>
         <button
           onClick={handleConfirm}
-          style={{ ...buttonBase, background: 'var(--accent, #2563eb)', color: '#fff' }}
+          style={{ ...buttonBase, background: 'var(--accent, #5B7B9A)', color: '#fff' }}
         >
           Apply
         </button>

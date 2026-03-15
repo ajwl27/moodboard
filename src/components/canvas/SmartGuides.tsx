@@ -114,7 +114,7 @@ export function SmartGuides() {
               top: guide.start,
               width: 1,
               height: guide.end - guide.start,
-              background: '#ff6b6b',
+              background: '#C4594A',
               pointerEvents: 'none',
               zIndex: 99998,
             }}
@@ -128,7 +128,7 @@ export function SmartGuides() {
               top: guide.pos,
               width: guide.end - guide.start,
               height: 1,
-              background: '#ff6b6b',
+              background: '#C4594A',
               pointerEvents: 'none',
               zIndex: 99998,
             }}

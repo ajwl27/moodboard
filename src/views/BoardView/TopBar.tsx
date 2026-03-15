@@ -49,7 +49,6 @@ export function TopBar({ navigate }: Props) {
     }
   }, [boardId, title, exporting]);
 
-  // Close export dropdown on outside click
   useEffect(() => {
     if (!exportOpen) return;
     const handler = (e: MouseEvent) => {
@@ -69,12 +68,12 @@ export function TopBar({ navigate }: Props) {
     left: 12,
     right: 12,
     height: 48,
-    background: 'rgba(255, 255, 255, 0.82)',
-    backdropFilter: 'blur(16px) saturate(1.4)',
-    WebkitBackdropFilter: 'blur(16px) saturate(1.4)',
-    borderRadius: 14,
-    border: '1px solid rgba(255, 255, 255, 0.6)',
-    boxShadow: '0 2px 12px rgba(0, 0, 0, 0.06), 0 0 0 1px rgba(0, 0, 0, 0.03)',
+    background: 'rgba(250, 248, 245, 0.85)',
+    backdropFilter: 'blur(12px)',
+    WebkitBackdropFilter: 'blur(12px)',
+    borderRadius: 12,
+    border: '1px solid rgba(0, 0, 0, 0.06)',
+    boxShadow: '0 2px 12px rgba(0, 0, 0, 0.05)',
     display: 'flex',
     alignItems: 'center',
     padding: '0 6px 0 6px',
@@ -85,16 +84,16 @@ export function TopBar({ navigate }: Props) {
   const btn: React.CSSProperties = {
     height: 36,
     padding: '0 14px',
-    borderRadius: 10,
+    borderRadius: 8,
     fontSize: 13,
     fontWeight: 500,
     background: 'transparent',
-    color: 'var(--text-secondary)',
+    color: '#7A7268',
     border: 'none',
     display: 'flex',
     alignItems: 'center',
     gap: 6,
-    transition: 'all 0.15s',
+    transition: 'all 0.15s ease-out',
     cursor: 'pointer',
   };
 
@@ -104,7 +103,7 @@ export function TopBar({ navigate }: Props) {
         onClick={() => navigate('/')}
         style={btn}
         onMouseEnter={(e) => { e.currentTarget.style.background = 'var(--accent-light)'; e.currentTarget.style.color = 'var(--accent)'; }}
-        onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = 'var(--text-secondary)'; }}
+        onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = '#7A7268'; }}
       >
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
           <path d="M19 12H5M12 19l-7-7 7-7" />
@@ -126,12 +125,12 @@ export function TopBar({ navigate }: Props) {
           }}
           style={{
             fontSize: 14,
-            fontWeight: 600,
+            fontWeight: 500,
             border: '1.5px solid var(--accent)',
-            borderRadius: 8,
+            borderRadius: 6,
             padding: '4px 10px',
             outline: 'none',
-            background: 'white',
+            background: 'var(--surface)',
             boxShadow: '0 0 0 3px var(--accent-light)',
             color: 'var(--text)',
           }}
@@ -141,8 +140,8 @@ export function TopBar({ navigate }: Props) {
           onClick={() => setEditing(true)}
           style={{
             ...btn,
-            color: 'var(--text)',
-            fontWeight: 600,
+            color: '#2C2825',
+            fontWeight: 500,
             fontSize: 14,
             letterSpacing: '-0.2px',
           }}
@@ -171,12 +170,12 @@ export function TopBar({ navigate }: Props) {
         style={{
           ...btn,
           background: gridEnabled ? 'var(--accent)' : 'transparent',
-          color: gridEnabled ? 'white' : 'var(--text-secondary)',
-          borderRadius: 10,
+          color: gridEnabled ? '#faf8f5' : '#7A7268',
+          borderRadius: 8,
           padding: '0 12px',
         }}
         onMouseEnter={(e) => { if (!gridEnabled) { e.currentTarget.style.background = 'var(--accent-light)'; e.currentTarget.style.color = 'var(--accent)'; } }}
-        onMouseLeave={(e) => { if (!gridEnabled) { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = 'var(--text-secondary)'; } }}
+        onMouseLeave={(e) => { if (!gridEnabled) { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = '#7A7268'; } }}
       >
         <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
           <line x1="3" y1="3" x2="3" y2="21" /><line x1="9" y1="3" x2="9" y2="21" />
@@ -193,12 +192,12 @@ export function TopBar({ navigate }: Props) {
         style={{
           ...btn,
           background: layersPanelOpen ? 'var(--accent)' : 'transparent',
-          color: layersPanelOpen ? 'white' : 'var(--text-secondary)',
-          borderRadius: 10,
+          color: layersPanelOpen ? '#faf8f5' : '#7A7268',
+          borderRadius: 8,
           padding: '0 12px',
         }}
         onMouseEnter={(e) => { if (!layersPanelOpen) { e.currentTarget.style.background = 'var(--accent-light)'; e.currentTarget.style.color = 'var(--accent)'; } }}
-        onMouseLeave={(e) => { if (!layersPanelOpen) { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = 'var(--text-secondary)'; } }}
+        onMouseLeave={(e) => { if (!layersPanelOpen) { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = '#7A7268'; } }}
       >
         <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
           <polygon points="12 2 2 7 12 12 22 7 12 2" />
@@ -215,12 +214,12 @@ export function TopBar({ navigate }: Props) {
           disabled={exporting}
           style={{
             ...btn,
-            borderRadius: 10,
+            borderRadius: 8,
             padding: '0 12px',
             opacity: exporting ? 0.5 : 1,
           }}
           onMouseEnter={(e) => { e.currentTarget.style.background = 'var(--accent-light)'; e.currentTarget.style.color = 'var(--accent)'; }}
-          onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = 'var(--text-secondary)'; }}
+          onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = '#7A7268'; }}
         >
           <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
             <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
@@ -235,12 +234,12 @@ export function TopBar({ navigate }: Props) {
             top: '100%',
             right: 0,
             marginTop: 6,
-            background: 'rgba(255, 255, 255, 0.92)',
-            backdropFilter: 'blur(16px) saturate(1.4)',
-            WebkitBackdropFilter: 'blur(16px) saturate(1.4)',
-            borderRadius: 10,
-            border: '1px solid rgba(255, 255, 255, 0.6)',
-            boxShadow: '0 4px 20px rgba(0, 0, 0, 0.1), 0 0 0 1px rgba(0, 0, 0, 0.04)',
+            background: 'rgba(250, 248, 245, 0.95)',
+            backdropFilter: 'blur(12px)',
+            WebkitBackdropFilter: 'blur(12px)',
+            borderRadius: 8,
+            border: '1px solid rgba(0, 0, 0, 0.06)',
+            boxShadow: '0 4px 20px rgba(0, 0, 0, 0.08)',
             padding: 4,
             minWidth: 120,
             zIndex: 1001,
@@ -258,13 +257,13 @@ export function TopBar({ navigate }: Props) {
                   borderRadius: 6,
                   fontSize: 13,
                   fontWeight: 500,
-                  color: 'var(--text-secondary)',
+                  color: '#7A7268',
                   cursor: 'pointer',
                   textAlign: 'left',
-                  transition: 'all 0.12s',
+                  transition: 'all 0.15s ease-out',
                 }}
                 onMouseEnter={(e) => { e.currentTarget.style.background = 'var(--accent-light)'; e.currentTarget.style.color = 'var(--accent)'; }}
-                onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = 'var(--text-secondary)'; }}
+                onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = '#7A7268'; }}
               >
                 Export as {label}
               </button>

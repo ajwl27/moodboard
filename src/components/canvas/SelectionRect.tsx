@@ -9,8 +9,8 @@ export function SelectionRect({ rect }: { rect: Rect }) {
         top: rect.y,
         width: rect.width,
         height: rect.height,
-        border: '1px solid #2563eb',
-        background: 'rgba(37, 99, 235, 0.08)',
+        border: '1px solid #5B7B9A',
+        background: 'rgba(91, 123, 154, 0.08)',
         pointerEvents: 'none',
         zIndex: 99999,
       }}

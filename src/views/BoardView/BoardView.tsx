@@ -270,7 +270,7 @@ export function BoardView() {
                 y1={drawState.startPoint.y}
                 x2={drawState.previewEnd.x}
                 y2={drawState.previewEnd.y}
-                stroke="#2563eb"
+                stroke="#5B7B9A"
                 strokeWidth={2}
                 strokeDasharray="6 3"
                 pointerEvents="none"

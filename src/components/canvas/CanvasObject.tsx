@@ -2,7 +2,6 @@ import React, { memo, useCallback, useRef } from 'react';
 import type { CanvasObject as CanvasObjectType, Layer } from '../../types';
 import type { ResizeDirection } from '../../hooks/useResize';
 import { useCanvasStore } from '../../stores/canvasStore';
-import { hexToRgba } from '../../utils/colours';
 import { TextCard } from '../cards/TextCard';
 import { ImageCard } from '../cards/ImageCard';
 import { LinkCard } from '../cards/LinkCard';
@@ -16,10 +15,9 @@ interface Props {
   onResizePointerDown: (e: React.PointerEvent, id: string, dir: ResizeDirection) => void;
 }
 
-// Shadows / border colours
-const SHADOW_DEFAULT = '0 1px 3px rgba(0,0,0,0.06), 0 0 0 1px rgba(0,0,0,0.04)';
-const SHADOW_HOVER = '0 3px 12px rgba(0,0,0,0.09), 0 0 0 1px rgba(0,0,0,0.06)';
-const SHADOW_SELECTED = '0 0 0 2px #6366f1, 0 4px 20px rgba(99, 102, 241, 0.15)';
+const SHADOW_DEFAULT = '0 1px 2px rgba(0, 0, 0, 0.04), 0 4px 12px rgba(0, 0, 0, 0.06)';
+const SHADOW_HOVER = '0 2px 4px rgba(0, 0, 0, 0.06), 0 8px 20px rgba(0, 0, 0, 0.08)';
+const SHADOW_SELECTED = '0 0 0 1.5px #5B7B9A, 0 0 0 4.5px rgba(91, 123, 154, 0.15), 0 4px 16px rgba(0, 0, 0, 0.08)';
 
 export const CanvasObject = memo(function CanvasObject({
   obj,
@@ -33,7 +31,7 @@ export const CanvasObject = memo(function CanvasObject({
   const layers = useCanvasStore((s) => s.layers);
   const layer: Layer | undefined = obj.layerId ? layers.find((l) => l.id === obj.layerId) : undefined;
   const layerOpacity = layer?.opacity ?? 1;
-  const hoverColour = layer?.colour ?? '#6366f1';
+  const hoverColour = layer?.colour ?? '#5B7B9A';
 
   const handlePointerDown = (e: React.PointerEvent) => {
     onPointerDown(e, obj.id);
@@ -42,17 +40,16 @@ export const CanvasObject = memo(function CanvasObject({
   const isGroup = obj.type === 'group';
   const isImage = obj.type === 'image';
 
-  // Hover: layer-coloured border + lift shadow + tint for non-image cards
   const onEnter = useCallback(() => {
     const el = divRef.current;
     if (!el || selected) return;
     if (isGroup) {
       el.style.borderColor = hoverColour;
     } else {
-      el.style.boxShadow = `0 0 0 2px ${hexToRgba(hoverColour, 0.5)}, ${SHADOW_HOVER}`;
-    }
-    if (!isImage && !isGroup) {
-      el.style.filter = 'brightness(0.97)';
+      el.style.boxShadow = SHADOW_HOVER;
+      if (isImage) {
+        el.style.transform = 'scale(1.005)';
+      }
     }
   }, [selected, isGroup, isImage, hoverColour]);
 
@@ -60,12 +57,14 @@ export const CanvasObject = memo(function CanvasObject({
     const el = divRef.current;
     if (!el) return;
     if (isGroup) {
-      el.style.borderColor = selected ? '#6366f1' : (obj.colour || '#cbd5e1');
+      el.style.borderColor = selected ? '#5B7B9A' : (obj.colour || '#E0DBD5');
     } else {
       el.style.boxShadow = selected ? SHADOW_SELECTED : SHADOW_DEFAULT;
+      if (isImage) {
+        el.style.transform = '';
+      }
     }
-    el.style.filter = '';
-  }, [selected, isGroup, obj.colour]);
+  }, [selected, isGroup, isImage, obj.colour]);
 
   const style: React.CSSProperties = {
     position: 'absolute',
@@ -75,20 +74,20 @@ export const CanvasObject = memo(function CanvasObject({
     height: obj.height,
     zIndex: obj.zIndex,
     opacity: layerOpacity,
-    borderRadius: isGroup ? 12 : 10,
+    borderRadius: isGroup ? 12 : 6,
     overflow: isGroup ? 'visible' : 'hidden',
     cursor: obj.locked || layer?.locked ? 'default' : 'move',
     userSelect: 'none',
     background: isGroup
-      ? ((obj as any).backgroundColour || 'rgba(99, 102, 241, 0.06)')
-      : (obj.colour || '#ffffff'),
+      ? ((obj as any).backgroundColour || 'rgba(91, 123, 154, 0.06)')
+      : (obj.colour || '#faf8f5'),
     boxShadow: isGroup
       ? 'none'
       : selected ? SHADOW_SELECTED : SHADOW_DEFAULT,
     border: isGroup
-      ? `2px ${(obj as any).borderStyle || 'dashed'} ${selected ? '#6366f1' : (obj.colour || '#cbd5e1')}`
+      ? `2px ${(obj as any).borderStyle || 'dashed'} ${selected ? '#5B7B9A' : (obj.colour || '#E0DBD5')}`
       : 'none',
-    transition: 'box-shadow 0.15s, border-color 0.15s, filter 0.15s',
+    transition: 'box-shadow 0.2s ease-out, border-color 0.2s ease-out, transform 0.2s ease-out',
   };
 
   let content: React.ReactNode;
@@ -128,14 +127,14 @@ export const CanvasObject = memo(function CanvasObject({
 });
 
 const handlePositions: Array<{ dir: ResizeDirection; style: React.CSSProperties }> = [
-  { dir: 'nw', style: { top: -5, left: -5, cursor: 'nwse-resize' } },
-  { dir: 'n', style: { top: -5, left: '50%', transform: 'translateX(-50%)', cursor: 'ns-resize' } },
-  { dir: 'ne', style: { top: -5, right: -5, cursor: 'nesw-resize' } },
-  { dir: 'e', style: { top: '50%', right: -5, transform: 'translateY(-50%)', cursor: 'ew-resize' } },
-  { dir: 'se', style: { bottom: -5, right: -5, cursor: 'nwse-resize' } },
-  { dir: 's', style: { bottom: -5, left: '50%', transform: 'translateX(-50%)', cursor: 'ns-resize' } },
-  { dir: 'sw', style: { bottom: -5, left: -5, cursor: 'nesw-resize' } },
-  { dir: 'w', style: { top: '50%', left: -5, transform: 'translateY(-50%)', cursor: 'ew-resize' } },
+  { dir: 'nw', style: { top: -4, left: -4, cursor: 'nwse-resize' } },
+  { dir: 'n', style: { top: -4, left: '50%', transform: 'translateX(-50%)', cursor: 'ns-resize' } },
+  { dir: 'ne', style: { top: -4, right: -4, cursor: 'nesw-resize' } },
+  { dir: 'e', style: { top: '50%', right: -4, transform: 'translateY(-50%)', cursor: 'ew-resize' } },
+  { dir: 'se', style: { bottom: -4, right: -4, cursor: 'nwse-resize' } },
+  { dir: 's', style: { bottom: -4, left: '50%', transform: 'translateX(-50%)', cursor: 'ns-resize' } },
+  { dir: 'sw', style: { bottom: -4, left: -4, cursor: 'nesw-resize' } },
+  { dir: 'w', style: { top: '50%', left: -4, transform: 'translateY(-50%)', cursor: 'ew-resize' } },
 ];
 
 function ResizeHandles({
@@ -153,13 +152,13 @@ function ResizeHandles({
           onPointerDown={(e) => onPointerDown(e, objId, dir)}
           style={{
             position: 'absolute',
-            width: 10,
-            height: 10,
-            background: 'white',
-            border: '2px solid #6366f1',
-            borderRadius: 3,
+            width: 8,
+            height: 8,
+            background: '#faf8f5',
+            border: '1.5px solid #5B7B9A',
+            borderRadius: 2,
             zIndex: 9999,
-            boxShadow: '0 1px 3px rgba(0,0,0,0.12)',
+            boxShadow: '0 1px 3px rgba(0,0,0,0.1)',
             ...style,
           }}
         />

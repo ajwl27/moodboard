@@ -23,17 +23,17 @@
   position: absolute;
   inset: 0;
   pointer-events: none;
-  opacity: 0.55;
+  opacity: 1;
 }
 
 .gridBackground.gridDots {
-  background-image: radial-gradient(circle, #7c8ba3 1.2px, transparent 1.2px);
+  background-image: radial-gradient(circle, rgba(194, 174, 151, 0.15) 1px, transparent 1px);
 }
 
 .gridBackground.gridLines {
   background-image:
-    linear-gradient(to right, #cbd5e1 1px, transparent 1px),
-    linear-gradient(to bottom, #cbd5e1 1px, transparent 1px);
+    linear-gradient(to right, rgba(194, 174, 151, 0.12) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(194, 174, 151, 0.12) 1px, transparent 1px);
 }
 
 .canvasLayer {

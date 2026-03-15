@@ -14,11 +14,17 @@ export const ArrowLayer = memo(function ArrowLayer({ arrows }: Props) {
   return (
     <>
       <defs>
-        <marker id="ah-end" markerWidth="12" markerHeight="9" refX="10" refY="4.5" orient="auto">
-          <path d="M0 0 L12 4.5 L0 9 Z" fill="currentColor" />
+        <marker id="ah-end" markerWidth="8" markerHeight="6" refX="7.5" refY="3" orient="auto">
+          <path d="M0 0 L8 3 L0 6 Z" fill="currentColor" />
         </marker>
-        <marker id="ah-start" markerWidth="12" markerHeight="9" refX="2" refY="4.5" orient="auto">
-          <path d="M12 0 L0 4.5 L12 9 Z" fill="currentColor" />
+        <marker id="ah-start" markerWidth="8" markerHeight="6" refX="0.5" refY="3" orient="auto">
+          <path d="M8 0 L0 3 L8 6 Z" fill="currentColor" />
+        </marker>
+        <marker id="ah-end-sel" markerWidth="8" markerHeight="6" refX="7.5" refY="3" orient="auto">
+          <path d="M0 0 L8 3 L0 6 Z" fill="#5B7B9A" />
+        </marker>
+        <marker id="ah-start-sel" markerWidth="8" markerHeight="6" refX="0.5" refY="3" orient="auto">
+          <path d="M8 0 L0 3 L8 6 Z" fill="#5B7B9A" />
         </marker>
       </defs>
       {arrows
@@ -71,25 +77,44 @@ function ArrowPath({
     }
   }
 
-  // Build SVG path
+  // Build SVG path — always use a subtle curve even for "straight" arrows
   let d: string;
-  if (arrow.curvature === 0) {
-    d = `M ${sx} ${sy} L ${ex} ${ey}`;
-  } else {
+  const dx = ex - sx;
+  const dy = ey - sy;
+  const len = Math.sqrt(dx * dx + dy * dy);
+
+  if (arrow.curvature === 0 && len > 0) {
+    // Apply a subtle default curve (15% perpendicular offset)
     const mx = (sx + ex) / 2;
     const my = (sy + ey) / 2;
-    const dx = ex - sx;
-    const dy = ey - sy;
+    const perpX = -dy / len;
+    const perpY = dx / len;
+    const offset = len * 0.08;
+    const cx = mx + perpX * offset;
+    const cy = my + perpY * offset;
+    d = `M ${sx} ${sy} Q ${cx} ${cy} ${ex} ${ey}`;
+  } else if (arrow.curvature !== 0) {
+    const mx = (sx + ex) / 2;
+    const my = (sy + ey) / 2;
     const cx = mx - dy * arrow.curvature * 0.5;
     const cy = my + dx * arrow.curvature * 0.5;
     d = `M ${sx} ${sy} Q ${cx} ${cy} ${ex} ${ey}`;
+  } else {
+    d = `M ${sx} ${sy} L ${ex} ${ey}`;
   }
 
   const dashArray =
     arrow.lineStyle === 'dashed' ? '8 4' : arrow.lineStyle === 'dotted' ? '3 5' : undefined;
-  const markerEnd = (arrow.arrowHead === 'end' || arrow.arrowHead === 'both') ? 'url(#ah-end)' : undefined;
-  const markerStart = arrow.arrowHead === 'both' ? 'url(#ah-start)' : undefined;
-  const colour = arrow.colour || '#64748b';
+  const markerEnd = (arrow.arrowHead === 'end' || arrow.arrowHead === 'both')
+    ? (selected ? 'url(#ah-end-sel)' : 'url(#ah-end)')
+    : undefined;
+  const markerStart = arrow.arrowHead === 'both'
+    ? (selected ? 'url(#ah-start-sel)' : 'url(#ah-start)')
+    : undefined;
+  const defaultColour = '#9A9189';
+  const colour = arrow.colour || defaultColour;
+  const strokeColour = selected ? '#5B7B9A' : colour;
+  const strokeW = selected ? (arrow.strokeWidth || 1.5) + 0.5 : (arrow.strokeWidth || 1.5);
 
   const handleClick = useCallback((e: React.MouseEvent) => {
     e.stopPropagation();
@@ -98,7 +123,6 @@ function ArrowPath({
     else store.select(arrow.id);
   }, [arrow.id]);
 
-  // --- Drag whole arrow (translate both endpoints) ---
   const handleBodyPointerDown = useCallback((e: React.PointerEvent) => {
     if (e.button !== 0) return;
     e.stopPropagation();
@@ -112,20 +136,19 @@ function ArrowPath({
 
     const onMove = (me: PointerEvent) => {
       const zoom = useCanvasStore.getState().camera.zoom;
-      const dx = (me.clientX - startScreenX) / zoom;
-      const dy = (me.clientY - startScreenY) / zoom;
+      const ddx = (me.clientX - startScreenX) / zoom;
+      const ddy = (me.clientY - startScreenY) / zoom;
       useCanvasStore.setState((s) => ({
         objects: s.objects.map((o) =>
           o.id === arrow.id
             ? {
                 ...o,
-                x: prevArrow.x + dx,
-                y: prevArrow.y + dy,
-                startX: prevArrow.startX + dx,
-                startY: prevArrow.startY + dy,
-                endX: prevArrow.endX + dx,
-                endY: prevArrow.endY + dy,
-                // Detach from objects when manually moved
+                x: prevArrow.x + ddx,
+                y: prevArrow.y + ddy,
+                startX: prevArrow.startX + ddx,
+                startY: prevArrow.startY + ddy,
+                endX: prevArrow.endX + ddx,
+                endY: prevArrow.endY + ddy,
                 startObjectId: null,
                 endObjectId: null,
               }
@@ -151,7 +174,6 @@ function ArrowPath({
     window.addEventListener('pointerup', onUp);
   }, [arrow]);
 
-  // --- Drag an endpoint ---
   const handleEndpointDrag = useCallback((e: React.PointerEvent, which: 'start' | 'end') => {
     if (e.button !== 0) return;
     e.stopPropagation();
@@ -194,30 +216,38 @@ function ArrowPath({
   }, [arrow]);
 
   return (
-    <g style={{ color: colour }}>
-      {/* Wide invisible hit area for clicking / dragging */}
+    <g style={{ color: strokeColour }}>
+      {/* Wide invisible hit area */}
       <path
         d={d}
         fill="none"
         stroke="transparent"
-        strokeWidth={Math.max(arrow.strokeWidth + 10, 14)}
+        strokeWidth={Math.max(strokeW + 10, 14)}
         pointerEvents="stroke"
         style={{ cursor: 'move' }}
         onClick={handleClick}
         onPointerDown={handleBodyPointerDown}
       />
+      {/* Origin dot */}
+      <circle
+        cx={sx}
+        cy={sy}
+        r={2}
+        fill={strokeColour}
+        pointerEvents="none"
+      />
       {/* Visible path */}
       <path
         d={d}
         fill="none"
-        stroke={selected ? '#3b82f6' : colour}
-        strokeWidth={arrow.strokeWidth || 2}
+        stroke={strokeColour}
+        strokeWidth={strokeW}
         strokeDasharray={dashArray}
         strokeLinecap="round"
         markerEnd={markerEnd}
         markerStart={markerStart}
         pointerEvents="none"
-        style={{ transition: 'stroke 0.15s' }}
+        style={{ transition: 'stroke 0.15s ease-out' }}
       />
       {/* Endpoint handles when selected */}
       {selected && (
@@ -226,9 +256,9 @@ function ArrowPath({
             cx={sx}
             cy={sy}
             r={5}
-            fill="white"
-            stroke="#3b82f6"
-            strokeWidth={2}
+            fill="#faf8f5"
+            stroke="#5B7B9A"
+            strokeWidth={1.5}
             style={{ cursor: 'crosshair' }}
             pointerEvents="all"
             onPointerDown={(e) => handleEndpointDrag(e, 'start')}
@@ -237,9 +267,9 @@ function ArrowPath({
             cx={ex}
             cy={ey}
             r={5}
-            fill="white"
-            stroke="#3b82f6"
-            strokeWidth={2}
+            fill="#faf8f5"
+            stroke="#5B7B9A"
+            strokeWidth={1.5}
             style={{ cursor: 'crosshair' }}
             pointerEvents="all"
             onPointerDown={(e) => handleEndpointDrag(e, 'end')}

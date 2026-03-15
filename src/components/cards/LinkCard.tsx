@@ -46,12 +46,12 @@ export function LinkCard({ obj }: Props) {
           overflow: 'hidden',
           cursor: 'pointer',
           display: 'flex', flexDirection: 'column',
-          background: 'var(--bg)',
-          transition: 'box-shadow 0.15s, border-color 0.15s',
+          background: 'var(--surface)',
+          transition: 'box-shadow 0.15s ease-out, border-color 0.15s ease-out',
         }}
         onMouseEnter={(e) => {
           e.currentTarget.style.borderColor = 'var(--accent)';
-          e.currentTarget.style.boxShadow = '0 2px 8px rgba(99, 102, 241, 0.12)';
+          e.currentTarget.style.boxShadow = '0 2px 8px rgba(91, 123, 154, 0.12)';
         }}
         onMouseLeave={(e) => {
           e.currentTarget.style.borderColor = 'var(--border-light)';
@@ -64,7 +64,7 @@ export function LinkCard({ obj }: Props) {
             width: '100%', flexShrink: 0,
             height: '55%', minHeight: 36, maxHeight: 140,
             overflow: 'hidden',
-            background: '#f1f3f5',
+            background: '#EBE7E1',
             borderBottom: '1px solid var(--border-light)',
           }}>
             <img
@@ -123,7 +123,7 @@ export function LinkCard({ obj }: Props) {
           )}
 
           <div style={{
-            fontSize: 10, color: 'var(--text-tertiary)', fontWeight: 500,
+            fontSize: 12, color: 'var(--accent)', fontWeight: 400,
             overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
             marginTop: 'auto',
           }}>

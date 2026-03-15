@@ -51,8 +51,8 @@ export function GroupRegion({ obj }: Props) {
         />
       ) : (
         <span style={{
-          fontSize: 11, fontWeight: 700, color: 'var(--text-tertiary)',
-          userSelect: 'none', textTransform: 'uppercase', letterSpacing: '0.8px',
+          fontSize: 11, fontWeight: 600, color: '#8A8078',
+          userSelect: 'none', textTransform: 'uppercase', letterSpacing: '0.08em',
         }}>
           {obj.label}
         </span>

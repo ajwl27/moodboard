@@ -105,7 +105,7 @@ export function Toolbar() {
       id: crypto.randomUUID(), boardId: state.boardId, type: 'group',
       x: cx - 150, y: cy - 100, width: 300, height: 200,
       zIndex: state.getMinZIndex() - 1, locked: false, colour: '#e8e8e8',
-      label: 'Group', backgroundColour: 'rgba(99, 102, 241, 0.06)', borderStyle: 'dashed',
+      label: 'Group', backgroundColour: 'rgba(91, 123, 154, 0.06)', borderStyle: 'dashed',
       layerId: state.activeLayerId,
     });
   }, []);
@@ -127,12 +127,12 @@ export function Toolbar() {
     flexDirection: 'column',
     gap: 2,
     zIndex: 1000,
-    background: 'rgba(255, 255, 255, 0.82)',
-    backdropFilter: 'blur(16px) saturate(1.4)',
-    WebkitBackdropFilter: 'blur(16px) saturate(1.4)',
-    borderRadius: 14,
-    border: '1px solid rgba(255, 255, 255, 0.6)',
-    boxShadow: '0 2px 12px rgba(0, 0, 0, 0.06), 0 0 0 1px rgba(0, 0, 0, 0.03)',
+    background: 'rgba(250, 248, 245, 0.85)',
+    backdropFilter: 'blur(12px)',
+    WebkitBackdropFilter: 'blur(12px)',
+    borderRadius: 12,
+    border: '1px solid rgba(0, 0, 0, 0.06)',
+    boxShadow: '0 2px 12px rgba(0, 0, 0, 0.05)',
     padding: 6,
   };
 
@@ -172,7 +172,7 @@ export function Toolbar() {
           onMouseLeave={(e) => {
             if (!btn.disabled) {
               e.currentTarget.style.background = 'transparent';
-              e.currentTarget.style.color = 'var(--text-secondary)';
+              e.currentTarget.style.color = '#7A7268';
             }
           }}
         >
@@ -193,7 +193,7 @@ export function Toolbar() {
             alignItems: 'center',
             justifyContent: 'center',
             background: tool.active ? 'var(--accent)' : 'transparent',
-            color: tool.active ? 'white' : 'var(--text-secondary)',
+            color: tool.active ? '#faf8f5' : '#7A7268',
             border: 'none',
             cursor: 'pointer',
             transition: 'all 0.15s',
@@ -207,7 +207,7 @@ export function Toolbar() {
           onMouseLeave={(e) => {
             if (!tool.active) {
               e.currentTarget.style.background = 'transparent';
-              e.currentTarget.style.color = 'var(--text-secondary)';
+              e.currentTarget.style.color = '#7A7268';
             }
           }}
         >

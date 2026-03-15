@@ -32,7 +32,7 @@ export function ImageCard({ obj }: Props) {
       onDoubleClick={handleDoubleClick}
       style={{ width: '100%', height: '100%', display: 'flex', flexDirection: 'column' }}
     >
-      <div style={{ flex: 1, overflow: 'hidden', minHeight: 0, background: '#f8f9fb' }}>
+      <div style={{ flex: 1, overflow: 'hidden', minHeight: 0, background: '#f2ede6' }}>
         {imgUrl ? (
           <img
             src={imgUrl}
@@ -61,7 +61,7 @@ export function ImageCard({ obj }: Props) {
           padding: '6px 10px',
           fontSize: 12,
           color: 'var(--text-secondary)',
-          borderTop: '1px solid var(--border-light)',
+          borderTop: '1px solid var(--border)',
           whiteSpace: 'nowrap',
           overflow: 'hidden',
           textOverflow: 'ellipsis',

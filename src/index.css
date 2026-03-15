@@ -1,47 +1,47 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&display=swap');
 
 :root {
-  --font: 'Inter', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  --font: 'DM Sans', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
   --mono: ui-monospace, 'SF Mono', Consolas, monospace;
 
-  --bg: #f8f9fb;
-  --bg-canvas: #eef0f4;
-  --surface: #ffffff;
-  --surface-hover: #f8f9fb;
-  --text: #0f172a;
-  --text-secondary: #64748b;
-  --text-tertiary: #94a3b8;
-  --border: #e2e8f0;
-  --border-light: #f1f5f9;
+  --bg: #f2ede6;
+  --bg-canvas: #f2ede6;
+  --surface: #faf8f5;
+  --surface-hover: #f5f1ec;
+  --text: #2C2825;
+  --text-secondary: #6B6560;
+  --text-tertiary: #8A8078;
+  --border: #E0DBD5;
+  --border-light: #EBE7E1;
 
-  --accent: #6366f1;
-  --accent-hover: #4f46e5;
-  --accent-light: rgba(99, 102, 241, 0.08);
-  --accent-medium: rgba(99, 102, 241, 0.15);
-  --accent-glow: rgba(99, 102, 241, 0.25);
+  --accent: #5B7B9A;
+  --accent-hover: #4A6A89;
+  --accent-light: rgba(91, 123, 154, 0.08);
+  --accent-medium: rgba(91, 123, 154, 0.15);
+  --accent-glow: rgba(91, 123, 154, 0.25);
 
-  --danger: #ef4444;
-  --danger-hover: #dc2626;
-  --danger-light: rgba(239, 68, 68, 0.08);
+  --danger: #C4594A;
+  --danger-hover: #A8453A;
+  --danger-light: rgba(196, 89, 74, 0.08);
 
-  --success: #22c55e;
-  --warning: #f59e0b;
+  --success: #5A9A6B;
+  --warning: #C4944A;
 
-  --shadow-xs: 0 1px 2px rgba(0, 0, 0, 0.04);
-  --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.06), 0 1px 2px rgba(0, 0, 0, 0.04);
-  --shadow-md: 0 4px 16px rgba(0, 0, 0, 0.08), 0 1px 4px rgba(0, 0, 0, 0.04);
-  --shadow-lg: 0 12px 40px rgba(0, 0, 0, 0.1), 0 2px 8px rgba(0, 0, 0, 0.04);
-  --shadow-xl: 0 20px 60px rgba(0, 0, 0, 0.12), 0 4px 12px rgba(0, 0, 0, 0.06);
-  --shadow-card: 0 1px 3px rgba(0, 0, 0, 0.05), 0 0 0 1px rgba(0, 0, 0, 0.03);
-  --shadow-card-hover: 0 8px 30px rgba(0, 0, 0, 0.08), 0 0 0 1px rgba(0, 0, 0, 0.03);
+  --shadow-xs: 0 1px 2px rgba(0, 0, 0, 0.03);
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.04), 0 4px 12px rgba(0, 0, 0, 0.06);
+  --shadow-md: 0 4px 16px rgba(0, 0, 0, 0.07), 0 1px 4px rgba(0, 0, 0, 0.03);
+  --shadow-lg: 0 12px 40px rgba(0, 0, 0, 0.09), 0 2px 8px rgba(0, 0, 0, 0.03);
+  --shadow-xl: 0 20px 60px rgba(0, 0, 0, 0.1), 0 4px 12px rgba(0, 0, 0, 0.05);
+  --shadow-card: 0 1px 2px rgba(0, 0, 0, 0.04), 0 4px 12px rgba(0, 0, 0, 0.06);
+  --shadow-card-hover: 0 4px 16px rgba(0, 0, 0, 0.08), 0 8px 30px rgba(0, 0, 0, 0.06);
 
   --radius: 8px;
   --radius-sm: 6px;
   --radius-lg: 12px;
   --radius-xl: 16px;
 
-  --transition: 0.15s cubic-bezier(0.4, 0, 0.2, 1);
-  --transition-slow: 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  --transition: 0.15s ease-out;
+  --transition-slow: 0.2s ease-out;
 
   font-family: var(--font);
   font-size: 14px;
