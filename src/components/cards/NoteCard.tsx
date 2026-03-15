@@ -51,6 +51,7 @@ export function NoteCard({ obj }: Props) {
   }, []);
 
   const fontSize = obj.fontSize ?? 14;
+  const titleFontSize = obj.titleFontSize ?? 18;
   const fontColour = obj.fontColour || '#2C2825';
 
   return (
@@ -80,7 +81,7 @@ export function NoteCard({ obj }: Props) {
               width: '100%',
               border: 'none',
               outline: 'none',
-              fontSize: 18,
+              fontSize: titleFontSize,
               fontWeight: 700,
               fontFamily: 'inherit',
               background: 'transparent',
@@ -91,7 +92,7 @@ export function NoteCard({ obj }: Props) {
           />
         ) : (
           <div style={{
-            fontSize: 18,
+            fontSize: titleFontSize,
             fontWeight: 700,
             textAlign: 'center',
             whiteSpace: 'nowrap',

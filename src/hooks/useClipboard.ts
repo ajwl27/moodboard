@@ -184,6 +184,13 @@ export function useClipboard() {
           state.addObject(card);
           state.select(card.id);
         }
+        return;
+      }
+
+      // No external content found — fall back to internal canvas clipboard
+      if (state.clipboardObjects.length > 0) {
+        e.preventDefault();
+        state.pasteClipboard();
       }
     };
 

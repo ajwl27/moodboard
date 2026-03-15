@@ -3,13 +3,14 @@ import { useCanvasStore } from '../../stores/canvasStore';
 import { addFileWithFolderSync } from '../../db/filesystem';
 import { generateThumbnail, getImageDimensions } from '../../utils/thumbnails';
 import { normalizeUrl, fetchOGMetadata } from '../../utils/opengraph';
-import type { FileRecord, LinkCard as LinkCardType } from '../../types';
+import type { FileRecord, FileCard as FileCardType, LinkCard as LinkCardType } from '../../types';
 
 export function Toolbar() {
   const toolMode = useCanvasStore((s) => s.toolMode);
   const canUndo = useCanvasStore((s) => s.undoStack.length > 0);
   const canRedo = useCanvasStore((s) => s.redoStack.length > 0);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const fileInsertRef = useRef<HTMLInputElement>(null);
 
   const addTextCard = useCallback(() => {
     const state = useCanvasStore.getState();
@@ -134,10 +135,45 @@ export function Toolbar() {
     });
   }, []);
 
+  const insertFile = useCallback(() => { fileInsertRef.current?.click(); }, []);
+
+  const handleFileInsert = useCallback(async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files;
+    if (!files || files.length === 0) return;
+    const state = useCanvasStore.getState();
+    if (!state.boardId) return;
+    const cam = state.camera;
+    const cx = (window.innerWidth / 2) / cam.zoom - cam.x;
+    const cy = (window.innerHeight / 2) / cam.zoom - cam.y;
+
+    for (let i = 0; i < files.length; i++) {
+      const file = files[i];
+      const fileId = crypto.randomUUID();
+      const fileRecord: FileRecord = {
+        id: fileId, blob: file, originalFilename: file.name,
+        mimeType: file.type || 'application/octet-stream', size: file.size,
+      };
+      await addFileWithFolderSync(fileRecord, state.boardId);
+
+      const card: FileCardType = {
+        id: crypto.randomUUID(), boardId: state.boardId, type: 'file',
+        x: cx - 120 + i * 20, y: cy - 35 + i * 20,
+        width: 260, height: 70,
+        zIndex: state.getMaxZIndex() + 1, locked: false, colour: '#ffffff',
+        fileId, originalFilename: file.name,
+        fileSize: file.size, mimeType: file.type || 'application/octet-stream',
+        layerId: state.activeLayerId,
+      };
+      state.addObject(card);
+    }
+    e.target.value = '';
+  }, []);
+
   const tools = [
     { id: 'text', label: 'Text', shortcut: 'T', icon: textIcon, onClick: addTextCard, active: false },
     { id: 'image', label: 'Image', shortcut: '', icon: imageIcon, onClick: addImage, active: false },
     { id: 'link', label: 'Link', shortcut: '', icon: linkIcon, onClick: addLink, active: false },
+    { id: 'file', label: 'File', shortcut: '', icon: fileIcon, onClick: insertFile, active: false },
     { id: 'note', label: 'Note', shortcut: 'N', icon: noteIcon, onClick: addNoteCard, active: false },
     { id: 'draw', label: 'Draw', shortcut: 'D', icon: drawIcon, onClick: toggleDrawMode, active: toolMode === 'draw' },
     { id: 'arrow', label: 'Arrow', shortcut: 'A', icon: arrowIcon, onClick: toggleArrowMode, active: toolMode === 'arrow' },
@@ -241,6 +277,7 @@ export function Toolbar() {
         </button>
       ))}
       <input ref={fileInputRef} type="file" accept="image/*" style={{ display: 'none' }} onChange={handleFileInput} />
+      <input ref={fileInsertRef} type="file" multiple style={{ display: 'none' }} onChange={handleFileInsert} />
     </div>
   );
 }
@@ -281,6 +318,12 @@ const drawIcon = (
   <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
     <path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z" />
     <path d="m15 5 4 4" />
+  </svg>
+);
+const fileIcon = (
+  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z" />
+    <polyline points="14 2 14 8 20 8" />
   </svg>
 );
 const noteIcon = (

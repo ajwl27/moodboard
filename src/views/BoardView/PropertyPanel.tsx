@@ -167,6 +167,11 @@ export function PropertyPanel() {
           {(single.type === 'text' || single.type === 'note') && (
             <div style={section}>
               <div style={heading}>{single.type === 'note' ? 'Note' : 'Text'}</div>
+              {single.type === 'note' && (
+                <div style={{ marginBottom: 8 }}>
+                  <Field label="Title" value={single.titleFontSize ?? 18} onChange={(v) => updateProp(single.id, { titleFontSize: Math.max(8, v) } as any)} />
+                </div>
+              )}
               <Field label="Size" value={single.type === 'text' ? single.fontSize : (single.fontSize ?? 14)} onChange={(v) => updateProp(single.id, { fontSize: Math.max(8, v) })} />
               <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 8 }}>
                 <span style={{ fontSize: 12, color: 'var(--text-secondary)', width: 50 }}>Font</span>

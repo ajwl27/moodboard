@@ -115,6 +115,7 @@ export interface NoteCard extends CanvasObjectBase {
   title: string;
   content: string;
   fontSize?: number;
+  titleFontSize?: number;
   fontColour?: string;
   transparentBg?: boolean;
 }

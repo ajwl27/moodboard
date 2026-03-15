@@ -51,14 +51,10 @@ export function useKeyboardShortcuts(navigate: NavigateFunction) {
         return;
       }
 
-      // Ctrl+V — paste (handled by useClipboard for external, internal paste here)
-      if ((e.ctrlKey || e.metaKey) && e.key === 'v') {
-        if (state.clipboardObjects.length > 0) {
-          e.preventDefault();
-          state.pasteClipboard();
-        }
-        return;
-      }
+      // Ctrl+V — let the paste event fire so useClipboard can handle both
+      // external (system clipboard) and internal (canvas clipboard) paste.
+      // Do NOT preventDefault here or external paste will be permanently blocked
+      // once an internal copy has been made.
 
       // Ctrl+D — duplicate
       if ((e.ctrlKey || e.metaKey) && e.key === 'd') {

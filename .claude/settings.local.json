@@ -30,7 +30,8 @@
       "Bash(npm install:*)",
       "Bash(cargo check:*)",
       "Read(//tmp/**)",
-      "Bash(cat:*)"
+      "Bash(cat:*)",
+      "Bash(npx vite:*)"
     ]
   }
 }

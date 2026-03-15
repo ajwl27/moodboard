@@ -1,5 +1,5 @@
 /** Returns { width, height } scaled to fit within maxCanvasWidth while preserving aspect ratio. */
-export async function getImageDimensions(blob: Blob, maxCanvasWidth = 600): Promise<{ width: number; height: number }> {
+export async function getImageDimensions(blob: Blob, maxCanvasWidth = 350): Promise<{ width: number; height: number }> {
   const img = await loadImage(blob);
   const w = 'width' in img ? img.width : (img as HTMLImageElement).naturalWidth;
   const h = 'height' in img ? img.height : (img as HTMLImageElement).naturalHeight;
