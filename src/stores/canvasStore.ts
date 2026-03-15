@@ -1,5 +1,6 @@
 import { create } from 'zustand';
 import type { Camera, CanvasObject, ToolMode, Layer } from '../types';
+import type { GuideLine } from '../utils/alignmentGuides';
 
 // --- History types ---
 
@@ -40,6 +41,9 @@ interface CanvasState {
   drawBrushSize: number;
   drawBrushColour: string;
   drawIsEraser: boolean;
+
+  // Alignment guides
+  activeGuides: GuideLine[];
 
   // Dirty tracking for auto-save
   dirtyObjectIds: Set<string>;
@@ -107,6 +111,9 @@ interface CanvasActions {
   // Crop modal
   setCropModalObjectId: (id: string | null) => void;
 
+  // Alignment guides
+  setActiveGuides: (guides: GuideLine[]) => void;
+
   // Draw tool
   setDrawBrushSize: (size: number) => void;
   setDrawBrushColour: (colour: string) => void;
@@ -142,6 +149,7 @@ export const useCanvasStore = create<CanvasStore>((set, get) => ({
   drawBrushSize: 3,
   drawBrushColour: '#2C2825',
   drawIsEraser: false,
+  activeGuides: [],
   dirtyObjectIds: new Set<string>(),
   boardDirty: false,
 
@@ -158,6 +166,7 @@ export const useCanvasStore = create<CanvasStore>((set, get) => ({
       editingObjectId: null,
       lightboxFileId: null,
       cropModalObjectId: null,
+      activeGuides: [],
       undoStack: [],
       redoStack: [],
       dirtyObjectIds: new Set(),
@@ -176,6 +185,7 @@ export const useCanvasStore = create<CanvasStore>((set, get) => ({
       editingObjectId: null,
       lightboxFileId: null,
       cropModalObjectId: null,
+      activeGuides: [],
       undoStack: [],
       redoStack: [],
       dirtyObjectIds: new Set(),
@@ -581,6 +591,9 @@ export const useCanvasStore = create<CanvasStore>((set, get) => ({
 
   // --- Crop modal ---
   setCropModalObjectId: (id) => set({ cropModalObjectId: id }),
+
+  // --- Alignment guides ---
+  setActiveGuides: (guides) => set({ activeGuides: guides }),
 
   // --- Draw tool ---
   setDrawBrushSize: (size) => set({ drawBrushSize: size }),

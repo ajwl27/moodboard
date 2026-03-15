@@ -20,6 +20,7 @@ import { CanvasObject } from '../../components/canvas/CanvasObject';
 import { SelectionHandles } from '../../components/canvas/SelectionHandles';
 import { SelectionRect } from '../../components/canvas/SelectionRect';
 import { ArrowLayer } from '../../components/canvas/ArrowLayer';
+import { AlignmentGuides } from '../../components/canvas/AlignmentGuides';
 import { ContextMenu } from '../../components/ContextMenu';
 import { Toolbar } from './Toolbar';
 import { DrawToolBar } from './DrawToolBar';
@@ -274,6 +275,7 @@ export function BoardView() {
                   onResizePointerDown={resizePointerDown}
                 />
               ))}
+            <AlignmentGuides />
           </div>
 
           <svg
